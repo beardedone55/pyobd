@@ -246,10 +246,10 @@ class MyApp(wx.App):
             print(sel, state)
             if   state == 0:
                 self.senprod.on(sel)
-                self.sensors.SetStringItem(sel,1,"1")
+                self.sensors.SetItem(sel,1,"1")
             elif state == 1:
                 self.senprod.off(sel)
-                self.sensors.SetStringItem(sel,1,"0")
+                self.sensors.SetItem(sel,1,"0")
             else:
                 debug("Incorrect sensor state")
         
@@ -498,16 +498,16 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         self.HelpAboutDlg.Destroy()
         
     def OnResult(self,event):
-        self.sensors.SetStringItem(event.data[0], event.data[1], event.data[2])
+        self.sensors.SetItem(event.data[0], event.data[1], event.data[2])
     
     def OnStatus(self,event):
         if event.data[0] == 666: #signal, that connection falied
             self.sensor_control_off()
         else:
-            self.status.SetStringItem(event.data[0], event.data[1], event.data[2])
+            self.status.SetItem(event.data[0], event.data[1], event.data[2])
     
     def OnTests(self,event):
-        self.OBDTests.SetStringItem(event.data[0], event.data[1], event.data[2])
+        self.OBDTests.SetItem(event.data[0], event.data[1], event.data[2])
          
     def OnDebug(self,event):    
         self.TraceDebug(event.data[0],event.data[1])
@@ -538,8 +538,8 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         
     def AddDTC(self, code):
         self.dtc.InsertStringItem(0, "")
-        self.dtc.SetStringItem(0, 0, code[0])
-        self.dtc.SetStringItem(0, 1, code[1])
+        self.dtc.SetItem(0, 0, code[0])
+        self.dtc.SetItem(0, 1, code[1])
 
 
     def CodeLookup(self,e = None):
@@ -593,8 +593,15 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         """scan for available ports. return a list of serial names"""
         available = []
         for i in range(256):
+          try: #scan Windows COM*
+            s = serial.Serial("COM" + str(i))
+            available.append(s.portstr)
+            s.close()   # explicit close 'cause of delayed GC in java
+          except serial.SerialException:
+            pass
+        for i in range(256):
           try: #scan standart ttyS*
-            s = serial.Serial(i)
+            s = serial.Serial("/dev/ttyS" + str(i))
             available.append(s.portstr)
             s.close()   # explicit close 'cause of delayed GC in java
           except serial.SerialException:
@@ -693,14 +700,14 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
             #set and save SERTIMEOUT
             self.SERTIMEOUT = int(timeoutCtrl.GetValue())
             self.config.set("pyOBD","SERTIMEOUT",self.SERTIMEOUT)
-            self.status.SetStringItem(3,1,self.COMPORT); 
+            self.status.SetItem(3,1,self.COMPORT); 
             
             #set and save RECONNATTEMPTS
             self.RECONNATTEMPTS = int(reconnectCtrl.GetValue())
             self.config.set("pyOBD","RECONNATTEMPTS",self.RECONNATTEMPTS)
             
             #write configuration to cfg file
-            self.config.write(open(self.configfilepath, 'wb'))
+            self.config.write(open(self.configfilepath, 'w'))
 
         
     def OnExit(self,e = None):
