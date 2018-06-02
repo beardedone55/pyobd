@@ -252,12 +252,12 @@ class OBDPort:
           DTCCodes = []
           
           
-          print "Number of stored DTC:" + str(dtcNumber) + " MIL: " + str(mil)
+          print ("Number of stored DTC:" + str(dtcNumber) + " MIL: " + str(mil))
           # get all DTC, 3 per mesg response
           for i in range(0, ((dtcNumber+2)/3)):
             self.send_command(GET_DTC_COMMAND)
             res = self.get_result()
-            print "DTC result:" + res
+            print ("DTC result:" + res)
             for i in range(0, 3):
                 val1 = hex_to_int(res[3+i*6:5+i*6])
                 val2 = hex_to_int(res[6+i*6:8+i*6]) #get DTC codes from response (3 DTC each 2 bytes)
@@ -277,7 +277,7 @@ class OBDPort:
           if res[:7] == "NO DATA": #no freeze frame
             return DTCCodes
           
-          print "DTC freeze result:" + res
+          print ("DTC freeze result:" + res)
           for i in range(0, 3):
               val1 = hex_to_int(res[3+i*6:5+i*6])
               val2 = hex_to_int(res[6+i*6:8+i*6]) #get DTC codes from response (3 DTC each 2 bytes)
