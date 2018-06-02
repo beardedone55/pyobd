@@ -285,8 +285,8 @@ class MyApp(wx.App):
         self.sensors.InsertColumn(2, "Value")
         for i in range(0, len(obd_io.obd_sensors.SENSORS)):
             s = obd_io.obd_sensors.SENSORS[i].name
-            self.sensors.InsertStringItem(i, "")
-            self.sensors.SetStringItem(i, 1, s)
+            self.sensors.InsertItem(i, "")
+            self.sensors.SetItem(i, 1, s)
             
         
         ####################################################################
@@ -294,8 +294,8 @@ class MyApp(wx.App):
         def OnPSize(e, win = panel):
             panel.SetSize(e.GetSize())
             self.sensors.SetSize(e.GetSize())
-            w,h = self.frame.GetClientSizeTuple()
-            self.sensors.SetDimensions(0,HOFFSET_LIST, w-10 , h - 35 )
+            w,h = self.frame.GetClientSize()
+            self.sensors.SetSize(0,HOFFSET_LIST, w-10 , h - 35 )
 
         panel.Bind(wx.EVT_SIZE,OnPSize)
         ####################################################################
@@ -324,9 +324,9 @@ class MyApp(wx.App):
         def OnPSize(e, win = self.DTCpanel):
             self.DTCpanel.SetSize(e.GetSize())
             self.dtc.SetSize(e.GetSize())
-            w,h = self.frame.GetClientSizeTuple()
+            w,h = self.frame.GetClientSize()
             # I have no idea where 70 comes from
-            self.dtc.SetDimensions(0,HOFFSET_LIST, w-16 , h - 70 )
+            self.dtc.SetSize(0,HOFFSET_LIST, w-16 , h - 70 )
 
         self.DTCpanel.Bind(wx.EVT_SIZE,OnPSize)
         ####################################################################
