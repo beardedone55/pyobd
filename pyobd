@@ -115,9 +115,10 @@ class MyApp(wx.App):
             ListCtrlAutoWidthMixin.__init__(self)
                 
     class sensorProducer(threading.Thread):
-        def __init__(self, _notify_window,portName,SERTIMEOUT,RECONNATTEMPTS,_nb):
-            from Queue import Queue
+        def __init__(self, _notify_window,portName,baudrate,SERTIMEOUT,RECONNATTEMPTS,_nb):
+            from queue import Queue
             self.portName = portName
+            self.baudrate = baudrate
             self.RECONNATTEMPTS=RECONNATTEMPTS
             self.SERTIMEOUT=SERTIMEOUT 
             self.port = None
@@ -126,7 +127,7 @@ class MyApp(wx.App):
             threading.Thread.__init__ ( self )
         
         def initCommunication(self):
-            self.port     = obd_io.OBDPort(self.portName,self._notify_window,self.SERTIMEOUT,self.RECONNATTEMPTS)
+            self.port     = obd_io.OBDPort(self.portName,self.baudrate,self._notify_window,self.SERTIMEOUT,self.RECONNATTEMPTS)
             
             if self.port.State==0: #Cant open serial port
                 return None
@@ -340,6 +341,7 @@ class MyApp(wx.App):
     def OnInit(self):
         self.ThreadControl = 0 #say thread what to do
         self.COMPORT = 0
+        self.BAUDRATE = 0
         self.senprod = None
         self.DEBUGLEVEL = 0 #debug everthing
 
@@ -359,8 +361,10 @@ class MyApp(wx.App):
           self.COMPORT="/dev/ttyACM0"
           self.RECONNATTEMPTS=5
           self.SERTIMEOUT=2
+          self.BAUDRATE=9600
         else:
           self.COMPORT=self.config.get("pyOBD","COMPORT")
+          self.BAUDRATE=self.config.get("pyOBD","BAUDRATE")
           self.RECONNATTEMPTS=self.config.getint("pyOBD","RECONNATTEMPTS")
           self.SERTIMEOUT=self.config.getint("pyOBD","SERTIMEOUT")
         
@@ -527,7 +531,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         if self.senprod: # signal current producers to finish
             self.senprod.stop()
         self.ThreadControl = 0    
-        self.senprod = self.sensorProducer(self,self.COMPORT,self.SERTIMEOUT,self.RECONNATTEMPTS,self.nb)
+        self.senprod = self.sensorProducer(self,self.COMPORT,self.BAUDRATE, self.SERTIMEOUT,self.RECONNATTEMPTS,self.nb)
         self.senprod.start() 
         
         self.sensor_control_on()
@@ -648,42 +652,49 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         sizer = wx.BoxSizer(wx.VERTICAL)
         
         ports = self.scanSerial()
-        rb = wx.RadioBox(diag, id, "Choose Serial Port",
-                        choices = ports, style = wx.RA_SPECIFY_COLS,
-                        majorDimension = 2)
-                        
-        sizer.Add(rb, 0)
+        comportPanel = wx.Panel(diag, -1)
+        comportStatic = wx.StaticText(comportPanel, -1, 'Choose Serial Port: ', pos=(3,5), size=(115,20))
+        comportDropdown = wx.Choice(comportPanel, id, choices = ports, pos=(120,0), size=(100, 25))   
+
+        baudrates = ['9600', '19200', '28800', '38400', '48000']
+
+        baudratePanel = wx.Panel(diag, -1)
+        baudrateStatic = wx.StaticText(baudratePanel, -1, 'Choose Baud Rate: ', pos=(3,5), size=(115,20))
+        baudrateDropdown = wx.Choice(baudratePanel, id, choices = baudrates, pos=(120,0), size=(100, 25))		
 
         #timeOut input control                
         timeoutPanel = wx.Panel(diag, -1)
-        timeoutCtrl = wx.TextCtrl(timeoutPanel, -1, '',pos=(140,0), size=(35, 25))
-        timeoutStatic = wx.StaticText(timeoutPanel,-1,'Timeout:',pos=(3,5),size=(140,20))
+        timeoutCtrl = wx.TextCtrl(timeoutPanel, -1, '',pos=(185,0), size=(35, 25))
+        timeoutStatic = wx.StaticText(timeoutPanel,-1,'Timeout:',pos=(3,5),size=(135,20))
         timeoutCtrl.SetValue(str(self.SERTIMEOUT))
         
         #reconnect attempt input control                
         reconnectPanel = wx.Panel(diag, -1)
-        reconnectCtrl = wx.TextCtrl(reconnectPanel, -1, '',pos=(140,0), size=(35, 25))
-        reconnectStatic = wx.StaticText(reconnectPanel,-1,'Reconnect attempts:',pos=(3,5),size=(140,20))
+        reconnectCtrl = wx.TextCtrl(reconnectPanel, -1, '',pos=(185,0), size=(35, 25))
+        reconnectStatic = wx.StaticText(reconnectPanel,-1,'Reconnect attempts:',pos=(3,5),size=(135,20))
         reconnectCtrl.SetValue(str(self.RECONNATTEMPTS))
-        
-        #web open link button
-        self.OpenLinkButton = wx.Button(diag,-1,"Click here to order ELM-USB interface",size=(260,30))
-        diag.Bind(wx.EVT_BUTTON,self.OnHelpOrder,self.OpenLinkButton)
-        
+               
         #set actual serial port choice
         if (self.COMPORT != 0) and (self.COMPORT in ports):
-          rb.SetSelection(ports.index(self.COMPORT))
+          comportDropdown.SetSelection(ports.index(self.COMPORT))
+        else:
+          comportDropdown.SetSelection(0)
+		  
+        if (self.BAUDRATE != 0) and (self.BAUDRATE in baudrates):
+          baudrateDropdown.SetSelection(baudrates.index(self.BAUDRATE))
+        else:
+          baudrateDropdown.SetSelection(baudrates.index('38400'))
         
-        
-        sizer.Add(self.OpenLinkButton)
-        sizer.Add(timeoutPanel,0)
-        sizer.Add(reconnectPanel,0)
+        sizer.Add(comportPanel, 0, border=5)
+        sizer.Add(baudratePanel, 0, border=5)
+        sizer.Add(timeoutPanel,0, border=5)
+        sizer.Add(reconnectPanel,0, border=5)
         
         box  = wx.BoxSizer(wx.HORIZONTAL)
-        box.Add(wx.Button(diag,wx.ID_OK),0)
+        box.Add(wx.Button(diag,wx.ID_OK),1)
         box.Add(wx.Button(diag,wx.ID_CANCEL),1)
 
-        sizer.Add(box, 0)
+        sizer.Add(box, 0, flag = wx.EXPAND, border = 5)
         diag.SetSizer(sizer)
         diag.SetAutoLayout(True)
         sizer.Fit(diag)
@@ -694,8 +705,11 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
             if self.config.sections()==[]:
               self.config.add_section("pyOBD")
             #set and save COMPORT
-            self.COMPORT = ports[rb.GetSelection()]
-            self.config.set("pyOBD","COMPORT",self.COMPORT) 
+            self.COMPORT = ports[comportDropdown.GetSelection()]
+            self.config.set("pyOBD","COMPORT",self.COMPORT)
+
+            self.BAUDRATE = baudrates[baudrateDropdown.GetSelection()]
+            self.config.set("pyOBD","BAUDRATE",self.BAUDRATE)			
             
             #set and save SERTIMEOUT
             self.SERTIMEOUT = int(timeoutCtrl.GetValue())
