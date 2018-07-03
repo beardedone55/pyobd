@@ -656,7 +656,7 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         comportStatic = wx.StaticText(comportPanel, -1, 'Choose Serial Port: ', pos=(3,5), size=(115,20))
         comportDropdown = wx.Choice(comportPanel, id, choices = ports, pos=(120,0), size=(100, 25))   
 
-        baudrates = ['9600', '19200', '28800', '38400', '48000']
+        baudrates = ['9600', '19200', '28800', '38400', '48000', '115200']
 
         baudratePanel = wx.Panel(diag, -1)
         baudrateStatic = wx.StaticText(baudratePanel, -1, 'Choose Baud Rate: ', pos=(3,5), size=(115,20))

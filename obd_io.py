@@ -112,9 +112,7 @@ class OBDPort:
              self.send_command("0100")
              ready = self.get_result()
              wx.PostEvent(self._notify_window, DebugEvent([2,"0100 response1:" + ready]))
-             if ready=="BUSINIT: ...OK":
-                ready=self.get_result()
-                wx.PostEvent(self._notify_window, DebugEvent([2,"0100 response2:" + ready]))
+             if ready[0:5]=="41 00":
                 return None
              else:             
                 #ready=ready[-5:] #Expecting error message: BUSINIT:.ERROR (parse last 5 chars)
