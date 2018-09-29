@@ -656,8 +656,8 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         comportStatic = wx.StaticText(comportPanel, -1, 'Choose Serial Port: ', pos=(3,5), size=(115,20))
         comportDropdown = wx.Choice(comportPanel, id, choices = ports, pos=(120,0), size=(100, 25))   
 
-        baudrates = ['9600', '19200', '28800', '38400', '48000', '115200']
-
+        #baudrates = ['9600', '19200', '28800', '38400', '48000', '115200']
+        baudrates = [ ]
         baudratePanel = wx.Panel(diag, -1)
         baudrateStatic = wx.StaticText(baudratePanel, -1, 'Choose Baud Rate: ', pos=(3,5), size=(115,20))
         baudrateDropdown = wx.Choice(baudratePanel, id, choices = baudrates, pos=(120,0), size=(100, 25))		
@@ -679,7 +679,13 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
           comportDropdown.SetSelection(ports.index(self.COMPORT))
         else:
           comportDropdown.SetSelection(0)
-		  
+
+        for rate in serial.Serial(ports[comportDropdown.GetSelection()]).BAUDRATES:
+            if rate >=9600 and rate <=115200:
+                baudrates.append(str(rate))
+
+        baudrateDropdown.AppendItems(baudrates)
+
         if (self.BAUDRATE != 0) and (self.BAUDRATE in baudrates):
           baudrateDropdown.SetSelection(baudrates.index(self.BAUDRATE))
         else:
