@@ -1,0 +1,47 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+CLEAR_DTC_COMMAND	obd_io.py	/^CLEAR_DTC_COMMAND = "04"$/;"	v
+DebugEvent	debugEvent.py	/^class DebugEvent(wx.PyEvent):$/;"	c
+EVT_DEBUG_ID	debugEvent.py	/^EVT_DEBUG_ID = 1010$/;"	v
+GET_DTC_COMMAND	obd_io.py	/^GET_DTC_COMMAND   = "03"$/;"	v
+GET_FREEZE_DTC_COMMAND	obd_io.py	/^GET_FREEZE_DTC_COMMAND = "07"$/;"	v
+OBDPort	obd_io.py	/^class OBDPort:$/;"	c
+SENSORS	obd_sensors.py	/^SENSORS = [$/;"	v
+Sensor	obd_sensors.py	/^class Sensor:$/;"	c
+__init__	debugEvent.py	/^   def __init__(self, data):$/;"	m	class:DebugEvent
+__init__	obd_io.py	/^     def __init__(self,portnum,baudrate,_notify_window,SERTIMEOUT,RECONNATTEMPTS):$/;"	m	class:OBDPort
+__init__	obd_sensors.py	/^    def __init__(self,sensorName, sensorcommand, sensorValueFunction, u):$/;"	m	class:Sensor
+clear_dtc	obd_io.py	/^     def clear_dtc(self):$/;"	m	class:OBDPort
+close	obd_io.py	/^     def close(self):$/;"	m	class:OBDPort
+cpass	obd_sensors.py	/^def cpass(code):$/;"	f
+decrypt_dtc_code	obd_io.py	/^def decrypt_dtc_code(code):$/;"	f
+dtc_decrypt	obd_sensors.py	/^def dtc_decrypt(code):$/;"	f
+fuel_trim_percent	obd_sensors.py	/^def fuel_trim_percent(code):$/;"	f
+get_dtc	obd_io.py	/^     def get_dtc(self):$/;"	m	class:OBDPort
+get_result	obd_io.py	/^     def get_result(self):$/;"	m	class:OBDPort
+get_sensor_value	obd_io.py	/^     def get_sensor_value(self,sensor):$/;"	m	class:OBDPort
+get_tests_MIL	obd_io.py	/^     def get_tests_MIL(self):$/;"	m	class:OBDPort
+hex_to_bitstring	obd_sensors.py	/^def hex_to_bitstring(str):$/;"	f
+hex_to_int	obd_sensors.py	/^def hex_to_int(str):$/;"	f
+intake_m_pres	obd_sensors.py	/^def intake_m_pres(code): # in kPa$/;"	f
+interpret_result	obd_io.py	/^     def interpret_result(self,code):$/;"	m	class:OBDPort
+log	obd_io.py	/^     def log(self, sensor_index, filename): $/;"	m	class:OBDPort
+maf	obd_sensors.py	/^def maf(code):$/;"	f
+pcode_classes	obd2_codes.py	/^pcode_classes = {$/;"	v
+pcodes	obd2_codes.py	/^pcodes = {$/;"	v
+percent_scale	obd_sensors.py	/^def percent_scale(code):$/;"	f
+ptest	obd2_codes.py	/^ptest= [$/;"	v
+rpm	obd_sensors.py	/^def rpm(code):$/;"	f
+sec_to_min	obd_sensors.py	/^def sec_to_min(code):$/;"	f
+send_command	obd_io.py	/^     def send_command(self, cmd):$/;"	m	class:OBDPort
+sensor	obd_io.py	/^     def sensor(self , sensor_index):$/;"	m	class:OBDPort
+sensor_names	obd_io.py	/^     def sensor_names(self):$/;"	m	class:OBDPort
+speed	obd_sensors.py	/^def speed(code):$/;"	f
+temp	obd_sensors.py	/^def temp(code):$/;"	f
+test	obd_sensors.py	/^def test():$/;"	f
+throttle_pos	obd_sensors.py	/^def throttle_pos(code):$/;"	f
+timing_advance	obd_sensors.py	/^def timing_advance(code):$/;"	f

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# vim: shiftwidth=4:tabstop=4:expandtab
 ############################################################################
 #
 # wxgui.py
@@ -23,9 +24,7 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ############################################################################
 
-#import wxversion
-#wxversion.select("2.6")
-import wx
+from PyQt5 import QtWidgets,QtCore
     
 import obd_io #OBD2 funcs
 import os #os.environ
@@ -40,8 +39,6 @@ import webbrowser #open browser from python
 
 from obd2_codes import pcodes
 from obd2_codes import ptest
-
-from wx.lib.mixins.listctrl import ListCtrlAutoWidthMixin
 
 ID_ABOUT  = 101
 ID_EXIT   = 110
@@ -58,62 +55,51 @@ ID_HELP_ABOUT = 508
 ID_HELP_VISIT = 509
 ID_HELP_ORDER = 510
 
-# Define notification event for sensor result window
-EVT_RESULT_ID = 1000
-def EVT_RESULT(win, func,id):
-    """Define Result Event."""
-    win.Connect(-1, -1, id, func)
-        
-#event pro akutalizaci Trace tabu
-class ResultEvent(wx.PyEvent):
-   """Simple event to carry arbitrary result data."""
-   def __init__(self, data):
-       """Init Result Event."""
-       wx.PyEvent.__init__(self)
-       self.SetEventType(EVT_RESULT_ID)
-       self.data = data
-
-#event pro aktualizaci DTC tabu
-EVT_DTC_ID = 1001       
-class DTCEvent(wx.PyEvent):
-   """Simple event to carry arbitrary result data."""
-   def __init__(self, data):
-       """Init Result Event."""
-       wx.PyEvent.__init__(self)
-       self.SetEventType(EVT_DTC_ID)
-       self.data = data
-
-#event pro aktualizaci status tabu
-EVT_STATUS_ID = 1002       
-class StatusEvent(wx.PyEvent):
-   """Simple event to carry arbitrary result data."""
-   def __init__(self, data):
-       """Init Result Event."""
-       wx.PyEvent.__init__(self)
-       self.SetEventType(EVT_STATUS_ID)
-       self.data = data
-
-#event pro aktualizaci tests tabu
-EVT_TESTS_ID = 1003       
-class TestEvent(wx.PyEvent):
-   """Simple event to carry arbitrary result data."""
-   def __init__(self, data):
-       """Init Result Event."""
-       wx.PyEvent.__init__(self)
-       self.SetEventType(EVT_TESTS_ID)
-       self.data = data
-       
 #defines notification event for debug tracewindow
 from debugEvent import *
        
-class MyApp(wx.App):
+class MyApp(QtWidgets.QApplication):
+
+    StatusEvent = QtCore.pyqtSignal(list)
+    ResultEvent = QtCore.pyqtSignal(list)
+    DebugEvent = QtCore.pyqtSignal(int,str)
+    TestEvent = QtCore.pyqtSignal(list)
+    DTCEvent = QtCore.pyqtSignal([int],[list])
+
+    def __init__(self, myArgs):
+        QtWidgets.QApplication.__init__(self, myArgs)
+        self.OnInit()
+
     # A listctrl which auto-resizes the column boxes to fill
-    class MyListCtrl(wx.ListCtrl, ListCtrlAutoWidthMixin):
-        def __init__(self, parent, id, pos = wx.DefaultPosition,
-                     size = wx.DefaultSize, style = 0):
-            wx.ListCtrl.__init__(self,parent,id,pos,size,style)
-            ListCtrlAutoWidthMixin.__init__(self)
+    # removed style for now
+    class MyListCtrl(QtWidgets.QTableWidget):
+        def __init__(self, pos = None,
+                     size = None):
+            QtWidgets.QTableWidget.__init__(self)
+            self.horizontalHeader().setStretchLastSection(True)
+            self.verticalHeader().hide()
+            self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+            if pos is not None:
+                self.move(pos)
+
+            if size is not None:
+                self.resize(size)
                 
+        def addTableRow(self, rowSize, data):
+            newRow = self.rowCount()
+            self.insertRow(newRow)
+            for i in range(0,rowSize):
+                cellData = QtWidgets.QTableWidgetItem(data[i])
+                cellData.setFlags(cellData.flags() & ~QtCore.Qt.ItemIsEditable) #Make item uneditable
+                self.setItem(newRow, i, cellData)
+
+    class MyPanel(QtWidgets.QWidget):
+        def __init__(self, listCtrl):
+            QtWidgets.QWidget.__init__(self)
+            layout = QtWidgets.QVBoxLayout()
+            layout.addWidget(listCtrl)
+            self.setLayout(layout)
+
     class sensorProducer(threading.Thread):
         def __init__(self, _notify_window,portName,baudrate,SERTIMEOUT,RECONNATTEMPTS,_nb):
             from queue import Queue
@@ -124,10 +110,11 @@ class MyApp(wx.App):
             self.port = None
             self._notify_window=_notify_window
             self._nb=_nb
+            self.active = []
             threading.Thread.__init__ ( self )
         
         def initCommunication(self):
-            self.port     = obd_io.OBDPort(self.portName,self.baudrate,self._notify_window,self.SERTIMEOUT,self.RECONNATTEMPTS)
+            self.port = obd_io.OBDPort(self.portName,self.baudrate,self._notify_window,self.SERTIMEOUT,self.RECONNATTEMPTS)
             
             if self.port.State==0: #Cant open serial port
                 return None
@@ -137,46 +124,46 @@ class MyApp(wx.App):
             
             self.active.append(1); #PID 0 is always supported
             
-            wx.PostEvent(self._notify_window, ResultEvent([0,0,"X"]))
-            wx.PostEvent(self._notify_window, DebugEvent([1,"Communication initialized..."]))
+            self._notify_window.ResultEvent.emit([0,0,"X"])
+            self._notify_window.DebugEvent.emit(1,"Communication initialized...")
             
             for i in range(1, len(self.supp)):
                 if self.supp[i-1] == "1": #put X in coloum if PID is supported
                     self.active.append(1)
-                    wx.PostEvent(self._notify_window, ResultEvent([i,0,"X"]))
+                    self._notify_window.ResultEvent.emit([i,0,"X"])
                 else:
                     self.active.append(0)
-                    wx.PostEvent(self._notify_window, ResultEvent([i,0,""]))
+                    self._notify_window.ResultEvent.emit([i,0,""])
             return "OK"
         
         def run(self):
-            wx.PostEvent(self._notify_window, StatusEvent([0,1,"Connecting...."]))
+            self._notify_window.StatusEvent.emit([0,1,"Connecting...."])
             self.initCommunication()
             if self.port.State==0: #cant connect, exit thread
               self.stop()
-              wx.PostEvent(self._notify_window, StatusEvent([666])) #signal apl, that communication was disconnected
-              wx.PostEvent(self._notify_window, StatusEvent([0,1,"Error cant connect..."]))
+              self._notify_window.StatusEvent.emit([666]) #signal apl, that communication was disconnected
+              self._notify_window.StatusEvent.emit([0,1,"Error. Cannot connect..."])
               return None
               
-            wx.PostEvent(self._notify_window, StatusEvent([0,1,"Connected"]))
-            wx.PostEvent(self._notify_window, StatusEvent([2,1,self.port.ELMver]))
+            self._notify_window.StatusEvent.emit([0,1,"Connected"])
+            self._notify_window.StatusEvent.emit([2,1,self.port.ELMver])
             prevstate=-1
             curstate=-1
             while self._notify_window.ThreadControl!=666:
                 prevstate=curstate
-                curstate=self._nb.GetSelection()
+                curstate=self._nb.currentIndex()
                 if curstate==0: #show status tab
                   pass
                 elif curstate==1: #show tests tab
                   res=self.port.get_tests_MIL()                
                   for i in range(0,len(res)):
-                    wx.PostEvent(self._notify_window, TestEvent([i,1,res[i]]))
+                    self._notify_window.TestEvent.emit([i,1,res[i]])
                 
                 elif curstate==2: #show sensor tab
                   for i in range(3, len(self.active)):
                       if self.active[i]:
                           s = self.port.sensor(i)
-                          wx.PostEvent(self._notify_window, ResultEvent([i,2,"%s (%s)" % (s[1], s[2])]))
+                          self._notify_window.ResultEvent.emit([i,2,"%s (%s)" % (s[1], s[2])])
                       if self._notify_window.ThreadControl==666:
                           break
                 elif curstate==3: #show DTC tab
@@ -196,12 +183,12 @@ class MyApp(wx.App):
                           
                       self._notify_window.ThreadControl=0
                   if prevstate!=3: 
-                    wx.PostEvent(self._notify_window, DTCEvent(0)) #clear list
+                    self._notify_window.DTCEvent(0) #clear list
                     DTCCodes=self.port.get_dtc()
                     if len(DTCCodes)==0:
-                      wx.PostEvent(self._notify_window, DTCEvent(["","","No DTC codes (codes cleared)"]))
+                      self._notify_window.DTCEvent.emit(["","","No DTC codes (codes cleared)"])
                     for i in range (0,len(DTCCodes)):
-                      wx.PostEvent(self._notify_window, DTCEvent([DTCCodes[i][1],DTCCodes[i][0],pcodes[DTCCodes[i][1]]]))   
+                      self._notify_window.DTCEvent.emit([DTCCodes[i][1],DTCCodes[i][0],pcodes[DTCCodes[i][1]]])   
                 else:
                  pass 
             self.stop()
@@ -227,117 +214,109 @@ class MyApp(wx.App):
         def stop(self):
             if self.port != None: #if stop is called before any connection port is not defined (and not connected )
               self.port.close()
-            wx.PostEvent(self._notify_window, StatusEvent([0,1,"Disconnected"]))
-            wx.PostEvent(self._notify_window, StatusEvent([2,1,"----"]))
+            self._notify_window.StatusEvent.emit([0,1,"Disconnected"])
+            self._notify_window.StatusEvent.emit([2,1,"----"])
   
   #class producer end
         
     def sensor_control_on(self): #after connection enable few buttons
-        self.settingmenu.Enable(ID_CONFIG,False)
-        self.settingmenu.Enable(ID_RESET,False)
-        self.settingmenu.Enable(ID_DISCONNECT,True)
-        self.dtcmenu.Enable(ID_GETC,True)
-        self.dtcmenu.Enable(ID_CLEAR,True)
-        self.GetDTCButton.Enable(True)
-        self.ClearDTCButton.Enable(True)
+        self.configAction.setEnabled(False)
+        self.connectAction.setEnabled(False)
+        self.disconnectAction.setEnabled(True)
+        self.getDTCAction.setEnabled(True)
+        self.clearDTCAction.setEnabled(True)
+        self.GetDTCButton.setEnabled(True)
+        self.ClearDTCButton.setEnabled(True)
 
-        def sensor_toggle(e):
-            sel = e.m_itemIndex
-            state = self.senprod.active[sel]
-            print(sel, state)
+        def sensor_toggle(row, col):
+            state = self.senprod.active[row]
             if   state == 0:
                 self.senprod.on(sel)
-                self.sensors.SetItem(sel,1,"1")
+                self.sensors.item(sel,1).setText("1")
             elif state == 1:
                 self.senprod.off(sel)
-                self.sensors.SetItem(sel,1,"0")
+                self.sensors.item(sel,1).setText("0")
             else:
                 debug("Incorrect sensor state")
         
-        self.sensors.Bind(wx.EVT_LIST_ITEM_ACTIVATED,sensor_toggle,id=self.sensor_id)                
+        self.sensors.cellClicked.connect(sensor_toggle)                
 
     def sensor_control_off(self): #after disconnect disable fer buttons
-        self.dtcmenu.Enable(ID_GETC,False)
-        self.dtcmenu.Enable(ID_CLEAR,False)
-        self.settingmenu.Enable(ID_DISCONNECT,False)
-        self.settingmenu.Enable(ID_CONFIG,True)
-        self.settingmenu.Enable(ID_RESET,True)
-        self.GetDTCButton.Enable(False)
-        self.ClearDTCButton.Enable(False)
-        #http://pyserial.sourceforge.net/                                                    empty function
-        #EVT_LIST_ITEM_ACTIVATED(self.sensors,self.sensor_id, lambda : None)
+        self.getDTCAction.setEnabled(False)
+        self.clearDTCAction.setEnabled(False)
+        self.configAction.setEnabled(True)
+        self.connectAction.setEnabled(True)
+        self.disconnectAction.setEnabled(False)
+        self.GetDTCButton.setEnabled(False)
+        self.ClearDTCButton.setEnabled(False)
                 
     def build_sensor_page(self):
-        HOFFSET_LIST=0
-        tID = wx.NewId()
-        self.sensor_id = tID
-        panel = wx.Panel(self.nb, -1)
-     
-        self.sensors = self.MyListCtrl(panel, tID, pos=wx.Point(0,HOFFSET_LIST),
-                                  style=
-                                  wx.LC_REPORT     |  
-                                  wx.SUNKEN_BORDER |
-                                  wx.LC_HRULES     |
-                                  wx.LC_SINGLE_SEL)
-     
+        self.sensors = self.MyListCtrl()
+        self.sensors.setColumnCount(3)
+        self.sensors.setHorizontalHeaderLabels(['Supported','Sensor','Value'])
+        self.sensors.setColumnWidth(0,70)
+        self.sensors.setColumnWidth(1,250)
+        self.sensors.horizontalHeaderItem(1).setTextAlignment(QtCore.Qt.AlignRight)
 
-        self.sensors.InsertColumn(0, "Supported",width=70)
-        self.sensors.InsertColumn(1, "Sensor",format=wx.LIST_FORMAT_RIGHT, width=250)
-        self.sensors.InsertColumn(2, "Value")
         for i in range(0, len(obd_io.obd_sensors.SENSORS)):
             s = obd_io.obd_sensors.SENSORS[i].name
-            self.sensors.InsertItem(i, "")
-            self.sensors.SetItem(i, 1, s)
-            
+            self.sensors.addTableRow(3, ['', s, ''])
+            self.sensors.item(i,1).setTextAlignment(QtCore.Qt.AlignRight)
         
         ####################################################################
         # This little bit of magic keeps the list the same size as the frame
-        def OnPSize(e, win = panel):
-            panel.SetSize(e.GetSize())
-            self.sensors.SetSize(e.GetSize())
-            w,h = self.frame.GetClientSize()
-            self.sensors.SetSize(0,HOFFSET_LIST, w-10 , h - 35 )
+        #TODO
+        #def OnPSize(e, win = panel):
+            #panel.SetSize(e.GetSize())
+            #self.sensors.SetSize(e.GetSize())
+            #w,h = self.frame.GetClientSize()
+            #self.sensors.SetSize(0,HOFFSET_LIST, w-10 , h - 35 )
 
-        panel.Bind(wx.EVT_SIZE,OnPSize)
+        #self.sensors..Bind(wx.EVT_SIZE,OnPSize)
         ####################################################################
-
-        self.nb.AddPage(panel, "Sensors")
+        sensorPage = self.MyPanel(self.sensors)
+        self.nb.addTab(sensorPage, "Sensors")
     
     def build_DTC_page(self):
-        HOFFSET_LIST=30 #offset from the top of panel (space for buttons)
-        tID = wx.NewId()
-        self.DTCpanel = wx.Panel(self.nb, -1)
-        self.GetDTCButton  = wx.Button(self.DTCpanel,-1 ,"Get DTC" , wx.Point(15,0))
-        self.ClearDTCButton = wx.Button(self.DTCpanel,-1,"Clear DTC", wx.Point(100,0))
+        self.DTCpanel = QtWidgets.QWidget()
+        self.GetDTCButton  = QtWidgets.QPushButton('Get DTC')
+        self.ClearDTCButton = QtWidgets.QPushButton('Clear DTC')
+        
+        panelLayout = QtWidgets.QGridLayout()
+        panelLayout.addWidget(self.GetDTCButton,0,0)
+        panelLayout.addWidget(self.ClearDTCButton,0,1)
         
         #bind functions to button click action
-        self.DTCpanel.Bind(wx.EVT_BUTTON,self.GetDTC,self.GetDTCButton)
-        self.DTCpanel.Bind(wx.EVT_BUTTON,self.QueryClear,self.ClearDTCButton)
+        self.GetDTCButton.clicked.connect(self.GetDTC)
+        self.ClearDTCButton.clicked.connect(self.QueryClear)
         
-        self.dtc = self.MyListCtrl(self.DTCpanel,tID, pos=wx.Point(0,HOFFSET_LIST),
-                          style=wx.LC_REPORT|wx.SUNKEN_BORDER|wx.LC_HRULES|wx.LC_SINGLE_SEL)
+        self.dtc = self.MyListCtrl()
                                    
-        self.dtc.InsertColumn(0, "Code", width=100)
-        self.dtc.InsertColumn(1, "Status",width=100)
-        self.dtc.InsertColumn(2, "Trouble code")
+        self.dtc.setColumnCount(3)
+        self.dtc.setHorizontalHeaderLabels(['Code','Status','Trouble Code'])
+        self.dtc.setColumnWidth(0,100)
+        self.dtc.setColumnWidth(1,100)
+        panelLayout.addWidget(self.dtc,1,0,1,2)
+        self.DTCpanel.setLayout(panelLayout)
         ####################################################################
         # This little bit of magic keeps the list the same size as the frame
-        def OnPSize(e, win = self.DTCpanel):
-            self.DTCpanel.SetSize(e.GetSize())
-            self.dtc.SetSize(e.GetSize())
-            w,h = self.frame.GetClientSize()
-            # I have no idea where 70 comes from
-            self.dtc.SetSize(0,HOFFSET_LIST, w-16 , h - 70 )
+        #TODO
+        #def OnPSize(e, win = self.DTCpanel):
+            #self.DTCpanel.SetSize(e.GetSize())
+            #self.dtc.SetSize(e.GetSize())
+            #w,h = self.frame.GetClientSize()
+            ## I have no idea where 70 comes from
+            #self.dtc.SetSize(0,HOFFSET_LIST, w-16 , h - 70 )
 
-        self.DTCpanel.Bind(wx.EVT_SIZE,OnPSize)
+        #self.DTCpanel.Bind(wx.EVT_SIZE,OnPSize)
         ####################################################################
         
-        self.nb.AddPage(self.DTCpanel, "DTC")
+        self.nb.addTab(self.DTCpanel, "DTC")
          
     def TraceDebug(self,level,msg):
         if self.DEBUGLEVEL<=level:
-            self.trace.Append([str(level),msg])
-        
+            self.trace.addTableRow(2, [str(level),msg])
+            
     def OnInit(self):
         self.ThreadControl = 0 #say thread what to do
         self.COMPORT = 0
@@ -345,7 +324,12 @@ class MyApp(wx.App):
         self.senprod = None
         self.DEBUGLEVEL = 0 #debug everthing
 
-        tID = wx.NewId()
+        def CreateMenuItem(ItemName, ToolTipText, ItemTrigger):
+            menuItemAction = QtWidgets.QAction(ItemName)
+            menuItemAction.setStatusTip(ToolTipText)
+            menuItemAction.triggered.connect(ItemTrigger)
+            return menuItemAction
+            
 
         #read settings from file
         self.config = configparser.RawConfigParser()
@@ -368,92 +352,96 @@ class MyApp(wx.App):
           self.RECONNATTEMPTS=self.config.getint("pyOBD","RECONNATTEMPTS")
           self.SERTIMEOUT=self.config.getint("pyOBD","SERTIMEOUT")
         
-        frame = wx.Frame(None, -1, "pyOBD-II")
+        frame = QtWidgets.QMainWindow()
+        frame.setWindowTitle('pyOBD-II')
         self.frame=frame
 
-        EVT_RESULT(self,self.OnResult,EVT_RESULT_ID)
-        EVT_RESULT(self,self.OnDebug, EVT_DEBUG_ID)
-        EVT_RESULT(self,self.OnDtc,EVT_DTC_ID)
-        EVT_RESULT(self,self.OnStatus,EVT_STATUS_ID)
-        EVT_RESULT(self,self.OnTests,EVT_TESTS_ID)
+        self.ResultEvent.connect(self.OnResult)
+        self.DebugEvent.connect(self.OnDebug)
+        self.DTCEvent.connect(self.OnDtc)
+        self.StatusEvent.connect(self.OnStatus)
+        self.TestEvent.connect(self.OnTests)
         
         # Main notebook frames
-        self.nb = wx.Notebook(frame, -1, style = wx.NB_TOP)
         
-        self.status = self.MyListCtrl(self.nb, tID,style=wx.LC_REPORT|wx.SUNKEN_BORDER)
-        self.status.InsertColumn(0, "Description",width=200)
-        self.status.InsertColumn(1, "Value")
-        self.status.Append(["Link State","Disconnnected"]);
-        self.status.Append(["Protocol","---"]);
-        self.status.Append(["Cable version","---"]);
-        self.status.Append(["COM port",self.COMPORT]);
-        
-        self.nb.AddPage(self.status, "Status")
-        
-        self.OBDTests = self.MyListCtrl(self.nb, tID,style=wx.LC_REPORT|wx.SUNKEN_BORDER)
-        self.OBDTests.InsertColumn(0, "Description",width=200)
-        self.OBDTests.InsertColumn(1, "Value")
-        self.nb.AddPage(self.OBDTests, "Tests")
+        self.nb = QtWidgets.QTabWidget(frame)
+        self.frame.setCentralWidget(self.MyPanel(self.nb))
+
+        self.status = self.MyListCtrl()
+        self.status.setColumnCount(2)
+        self.status.setHorizontalHeaderLabels(['Description','Value'])
+        self.status.setColumnWidth(0,100)
+        self.status.addTableRow(2, ['Link State', 'Disconnected'])
+        self.status.addTableRow(2, ['Protocol', '---'])
+        self.status.addTableRow(2, ['Cable version', '---'])
+
+        statusPanel  = self.MyPanel(self.status)
+        self.nb.addTab(statusPanel, "Status")
+
+        self.OBDTests = self.MyListCtrl()
+        self.OBDTests.setColumnCount(2)
+        self.OBDTests.setHorizontalHeaderLabels(['Description','Value'])
+        self.OBDTests.setColumnWidth(0,200)
+
+        OBDTestPanel = self.MyPanel(self.OBDTests)
+        self.nb.addTab(OBDTestPanel, "Tests")
                 
         for i in range(0,len(ptest)): #fill MODE 1 PID 1 test description 
-          self.OBDTests.Append([ptest[i],"---"]);
-        
+            self.OBDTests.addTableRow(2, [ptest[i],'---'])
+            
         self.build_sensor_page()
 
         self.build_DTC_page()
         
-        self.trace = self.MyListCtrl(self.nb, tID,style=wx.LC_REPORT|wx.SUNKEN_BORDER)
-        self.trace.InsertColumn(0, "Level",width=40)
-        self.trace.InsertColumn(1, "Message")
-        self.nb.AddPage(self.trace, "Trace")
+        self.trace = self.MyListCtrl()
+        self.trace.setColumnCount(2)
+        self.trace.setHorizontalHeaderLabels(['Level','Message'])
+        self.trace.setColumnWidth(0,40)
+
+        tracePanel = self.MyPanel(self.trace)
+        self.nb.addTab(tracePanel, "Trace")
+
         self.TraceDebug(1,"Application started")
 
-        # Setting up the menu.
-        self.filemenu= wx.Menu()
-        self.filemenu.Append(ID_EXIT,"E&xit"," Terminate the program")
-
-        self.settingmenu = wx.Menu()
-        self.settingmenu.Append(ID_CONFIG,"Configure"," Configure pyOBD")
-        self.settingmenu.Append(ID_RESET,"Connect"," Reopen and connect to device")
-        self.settingmenu.Append(ID_DISCONNECT,"Disconnect","Close connection to device")
-
-        self.dtcmenu= wx.Menu()
-        # tady toto nastavi automaticky tab DTC a provede akci
-        self.dtcmenu.Append(ID_GETC  ,"Get DTCs",   " Get DTC Codes")
-        self.dtcmenu.Append(ID_CLEAR ,"Clear DTC",  " Clear DTC Codes")
-        self.dtcmenu.Append(ID_LOOK  ,"Code Lookup"," Lookup DTC Codes")
-
-        self.helpmenu = wx.Menu()
+        self.frame.statusBar()
         
-        self.helpmenu.Append(ID_HELP_ABOUT  ,"About this program",   " Get DTC Codes")
-        self.helpmenu.Append(ID_HELP_VISIT  ,"Visit program homepage"," Lookup DTC Codes")
-        self.helpmenu.Append(ID_HELP_ORDER ,"Order OBD-II interface",  " Clear DTC Codes")
-
-
         # Creating the menubar.
-        self.menuBar = wx.MenuBar()
-        self.menuBar.Append(self.filemenu,"&File") # Adding the "filemenu" to the MenuBar
-        self.menuBar.Append(self.settingmenu,"&OBD-II")
-        self.menuBar.Append(self.dtcmenu,"&Trouble codes")
-        self.menuBar.Append(self.helpmenu,"&Help")
-        
-        frame.SetMenuBar(self.menuBar)  # Adding the MenuBar to the Frame content.
-        
-        frame.Bind(wx.EVT_MENU,self.OnExit,id=ID_EXIT)# attach the menu-event ID_EXIT to the   
-        frame.Bind(wx.EVT_MENU,self.QueryClear,id=ID_CLEAR)
-        frame.Bind(wx.EVT_MENU,self.Configure,id=ID_CONFIG)
-        frame.Bind(wx.EVT_MENU,self.OpenPort,id=ID_RESET)
-        frame.Bind(wx.EVT_MENU,self.OnDisconnect,id=ID_DISCONNECT)
-        frame.Bind(wx.EVT_MENU,self.GetDTC,id=ID_GETC)
-        frame.Bind(wx.EVT_MENU,self.CodeLookup,id=ID_LOOK)
-        frame.Bind(wx.EVT_MENU,self.OnHelpAbout,id=ID_HELP_ABOUT) 
-        frame.Bind(wx.EVT_MENU,self.OnHelpVisit,id=ID_HELP_VISIT)
-        frame.Bind(wx.EVT_MENU,self.OnHelpOrder,id=ID_HELP_ORDER)
-  
-        self.SetTopWindow(frame)
+        self.menuBar = self.frame.menuBar()
+        self.filemenu = self.menuBar.addMenu("&File") # Adding the "filemenu" to the MenuBar
+        self.settingmenu = self.menuBar.addMenu("&OBD-II")
+        self.dtcmenu = self.menuBar.addMenu("&Trouble codes")
+        self.helpmenu = self.menuBar.addMenu("&Help")
 
-        frame.Show(True)
-        frame.SetSize((520,400))
+        # Setting up the menu.
+
+        self.exitAction = CreateMenuItem("E&xit"," Terminate the program", self.OnExit)
+        self.filemenu.addAction(self.exitAction)
+
+        self.configAction = CreateMenuItem("Configure"," Configure pyOBD",self.Configure)
+        self.connectAction = CreateMenuItem("Connect"," Reopen and connect to device",self.OpenPort)
+        self.disconnectAction = CreateMenuItem("Disconnect","Close connection to device",self.OnDisconnect)
+        self.settingmenu.addAction(self.configAction)
+        self.settingmenu.addAction(self.connectAction)
+        self.settingmenu.addAction(self.disconnectAction)
+
+        # tady toto nastavi automaticky tab DTC a provede akci
+        self.getDTCAction = CreateMenuItem("Get DTCs",   " Get DTC Codes", self.GetDTC)
+        self.clearDTCAction = CreateMenuItem("Clear DTC",  " Clear DTC Codes", self.QueryClear)
+        self.codeLookupAction = CreateMenuItem("Code Lookup"," Lookup DTC Codes", self.CodeLookup)
+        self.dtcmenu.addAction(self.getDTCAction)
+        self.dtcmenu.addAction(self.clearDTCAction)
+        self.dtcmenu.addAction(self.codeLookupAction)
+
+        
+        self.aboutAction = CreateMenuItem("About this program","",self.OnHelpAbout)
+        self.visitAction = CreateMenuItem("Visit program homepage","",self.OnHelpVisit)
+        self.orderAction = CreateMenuItem("Order OBD-II interface","",self.OnHelpOrder)
+        self.helpmenu.addAction(self.aboutAction)
+        self.helpmenu.addAction(self.visitAction)
+        self.helpmenu.addAction(self.orderAction)
+
+        frame.show()
+        frame.resize(520,400)
         self.sensor_control_off()
 
         return True
@@ -465,7 +453,7 @@ class MyApp(wx.App):
         webbrowser.open("http://www.obdtester.com/order")
     
     def OnHelpAbout(self,event): #todo about box
-        Text = """  PyOBD is an automotive OBD2 diagnosting application using ELM237 cable.
+        Text = """PyOBD is an automotive OBD2 diagnosting application using ELM237 cable.
 
 (C) 2008-2009 SeCons Ltd.
 (C) 2004 Charles Donour Sizemore
@@ -473,54 +461,45 @@ class MyApp(wx.App):
 http://www.obdtester.com/
 http://www.secons.com/
 
-  PyOBD is free software; you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by the Free Software Foundation; 
+PyOBD is free software; you can redistribute it and/or modify \
+it under the terms of the GNU General Public License as published by the Free Software Foundation; \
 either version 2 of the License, or (at your option) any later version.
 
-  PyOBD is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
-without even the implied warranty of MEHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
-See the GNU General Public License for more details. You should have received a copy of 
+PyOBD is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; \
+without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. \
+See the GNU General Public License for more details. You should have received a copy of \
 the GNU General Public License along with PyOBD; if not, write to 
-the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+Free Software Foundation, Inc.
+59 Temple Place
+Suite 330
+Boston, MA  02111-1307  USA
 """
 
-        #HelpAboutDlg = wx.Dialog(self.frame, id, title="About")
+        HelpAboutDlg = QtWidgets.QMessageBox(QtWidgets.QMessageBox.Information, 'About', Text, QtWidgets.QMessageBox.Ok, self.frame)
+        HelpAboutDlg.exec()
+        #self.HelpAboutDlg.Destroy()
 
-        
-        #box  = wx.BoxSizer(wx.HORIZONTAL)
-        #box.Add(wx.StaticText(reconnectPanel,-1,Text,pos=(0,0),size=(200,200)))
-        #box.Add(wx.Button(HelpAboutDlg,wx.ID_OK),0)
-        #box.Add(wx.Button(HelpAboutDlg,wx.ID_CANCEL),1)
-
-        #HelpAboutDlg.SetSizer(box)
-        #HelpAboutDlg.SetAutoLayout(True)
-        #sizer.Fit(HelpAboutDlg)
-        #HelpAboutDlg.ShowModal()
-        
-        self.HelpAboutDlg = wx.MessageDialog(self.frame, Text, 'About',wx.OK | wx.ICON_INFORMATION)
-        self.HelpAboutDlg.ShowModal()
-        self.HelpAboutDlg.Destroy()
-        
     def OnResult(self,event):
-        self.sensors.SetItem(event.data[0], event.data[1], event.data[2])
+        self.sensors.addTableRow(3, event)
     
     def OnStatus(self,event):
-        if event.data[0] == 666: #signal, that connection falied
+        if event[0] == 666: #signal, that connection falied
             self.sensor_control_off()
         else:
-            self.status.SetItem(event.data[0], event.data[1], event.data[2])
+            self.status.item(event[0],event[1]).setText(event[2])
     
     def OnTests(self,event):
-        self.OBDTests.SetItem(event.data[0], event.data[1], event.data[2])
+        self.OBDTests.addTableRow(3, event)
          
-    def OnDebug(self,event):    
-        self.TraceDebug(event.data[0],event.data[1])
+    def OnDebug(self, level, msg):    
+        self.TraceDebug(level, msg)
     
     def OnDtc(self,event):
-        if event.data == 0: #signal, that DTC was cleared
-          self.dtc.DeleteAllItems()
+        if event == 0: #signal, that DTC was cleared
+            self.dtc.clearContents()
         else:
-          self.dtc.Append(event.data)
+            self.dtc.addTableRow(len(event), event.data)
     
     def OnDisconnect(self,event): #disconnect connection to ECU
         self.ThreadControl=666
@@ -537,60 +516,59 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
         self.sensor_control_on()
         
     def GetDTC(self,e):
-        self.nb.SetSelection(3)
+        self.nb.setCurrentWidget(self.DTCPanel)
         self.ThreadControl=2
         
     def AddDTC(self, code):
-        self.dtc.InsertStringItem(0, "")
-        self.dtc.SetItem(0, 0, code[0])
-        self.dtc.SetItem(0, 1, code[1])
+        self.dtc.addTableRow(2, code)
 
 
     def CodeLookup(self,e = None):
         id = 0
-        diag = wx.Frame(None, id, title="Diagnostic Trouble Codes")
+        diag = QtWidgets.QDialog(self.frame)
+        diag.setWindowTitle('Diagnostic Trouble Codes')
 
-        tree = wx.TreeCtrl(diag, id, style = wx.TR_HAS_BUTTONS)
+        tree = QtWidgets.QTreeWidget(diag)
 
-        root = tree.AddRoot("Code Reference")
+        root = QtWidgets.QTreeWidgetItem(tree)
+        root.setText(0,"Code Reference")
         proot = root; # tree.AppendItem(root,"Powertrain (P) Codes")
-        codes = pcodes.keys()
-        codes.sort()
-        group = ""
+        codes = sorted(pcodes.keys())
+        group = ''
         for c in codes:
             if c[:3] != group:
-                group_root = tree.AppendItem(proot, c[:3]+"XX")
+                group_root = QtWidgets.QTreeWidgetItem(proot)
+                group_root.setText(0,c[:3]+"XX")
+                proot.addChild(group_root)
                 group = c[:3]
-            leaf = tree.AppendItem(group_root, c)
-            tree.AppendItem(leaf, pcodes[c]) 
+            leaf = QtWidgets.QTreeWidgetItem(group_root)
+            leaf.setText(0,c)
+            group_root.addChild(leaf)
+            codeText = QtWidgets.QTreeWidgetItem(leaf)
+            codeText.setText(0,pcodes[c])
+            leaf.addChild(codeText)
 
-        diag.SetSize((400,500))
-        diag.Show(True)
+        layout = QtWidgets.QHBoxLayout(diag)
+        layout.addWidget(tree)
+        tree.header().hide()
+        diag.setLayout(layout)
+        diag.resize(400,500)
+        diag.show()
 
         
     def QueryClear(self,e):
         id = 0
-        diag = wx.Dialog(self.frame, id, title="Clear DTC?")
+        diag = QtWidgets.QMessageBox(QtWidgets.QMessageBox.Question, 'Clear DTC?', \
+                                     'Are you sure you wish to clear all DTC codes and freeze frame data?',\
+                                     QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, self.frame)
 
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(wx.StaticText(diag, -1, "Are you sure you wish to"),0)
-        sizer.Add(wx.StaticText(diag, -1, "clear all DTC codes and "),0)
-        sizer.Add(wx.StaticText(diag, -1, "freeze frame data?      "),0)
-        box  = wx.BoxSizer(wx.HORIZONTAL)
-        box.Add(wx.Button(diag,wx.ID_OK,     "Ok"    ),0)
-        box.Add(wx.Button(diag,wx.ID_CANCEL, "Cancel"),0)
-
-        sizer.Add(box, 0)
-        diag.SetSizer(sizer)
-        diag.SetAutoLayout(True)
-        sizer.Fit(diag)
-        r  = diag.ShowModal()
-        if r == wx.ID_OK:
+        r  = diag.exec()
+        if r == QtWidgets.QMessageBox.Yes:
             self.ClearDTC()
 
     def ClearDTC(self):
         self.ThreadControl=1
-        self.nb.SetSelection(3)
+        self.nb.setCurrentWidget(self.DTCPanel.parentWidget())
         
     
     def scanSerial(self):
@@ -648,91 +626,86 @@ the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  0211
 
     def Configure(self,e = None):
         id = 0
-        diag = wx.Dialog(self.frame, id, title="Configure")
-        sizer = wx.BoxSizer(wx.VERTICAL)
+        diag = QtWidgets.QDialog(self.frame)
+        diag.setWindowTitle("Configure")
+        sizer = QtWidgets.QFormLayout()
         
         ports = self.scanSerial()
-        comportPanel = wx.Panel(diag, -1)
-        comportStatic = wx.StaticText(comportPanel, -1, 'Choose Serial Port: ', pos=(3,5), size=(115,20))
-        comportDropdown = wx.Choice(comportPanel, id, choices = ports, pos=(120,0), size=(100, 25))   
+        comportDropdown = QtWidgets.QComboBox()
+        comportDropdown.addItems(ports)
+        sizer.addRow('Choose Serial Port: ', comportDropdown)
 
         #baudrates = ['9600', '19200', '28800', '38400', '48000', '115200']
         baudrates = [ ]
-        baudratePanel = wx.Panel(diag, -1)
-        baudrateStatic = wx.StaticText(baudratePanel, -1, 'Choose Baud Rate: ', pos=(3,5), size=(115,20))
-        baudrateDropdown = wx.Choice(baudratePanel, id, choices = baudrates, pos=(120,0), size=(100, 25))		
+        baudrateDropdown = QtWidgets.QComboBox()
+        baudrateDropdown.addItems(baudrates)
+        sizer.addRow('Choose Baud Rate: ', baudrateDropdown)
 
         #timeOut input control                
-        timeoutPanel = wx.Panel(diag, -1)
-        timeoutCtrl = wx.TextCtrl(timeoutPanel, -1, '',pos=(185,0), size=(35, 25))
-        timeoutStatic = wx.StaticText(timeoutPanel,-1,'Timeout:',pos=(3,5),size=(135,20))
-        timeoutCtrl.SetValue(str(self.SERTIMEOUT))
+        timeoutCtrl = QtWidgets.QLineEdit(str(self.SERTIMEOUT))
+        sizer.addRow('Timeout:', timeoutCtrl)
         
         #reconnect attempt input control                
-        reconnectPanel = wx.Panel(diag, -1)
-        reconnectCtrl = wx.TextCtrl(reconnectPanel, -1, '',pos=(185,0), size=(35, 25))
-        reconnectStatic = wx.StaticText(reconnectPanel,-1,'Reconnect attempts:',pos=(3,5),size=(135,20))
-        reconnectCtrl.SetValue(str(self.RECONNATTEMPTS))
+        reconnectCtrl = QtWidgets.QLineEdit(str(self.RECONNATTEMPTS))
+        sizer.addRow('Reconnect attempts:', reconnectCtrl)
                
         #set actual serial port choice
         if (self.COMPORT != 0) and (self.COMPORT in ports):
-          comportDropdown.SetSelection(ports.index(self.COMPORT))
+          comportDropdown.setCurrentIndex(ports.index(self.COMPORT))
         else:
-          comportDropdown.SetSelection(0)
+          comportDropdown.setCurrentIndex(0)
 
-        for rate in serial.Serial(ports[comportDropdown.GetSelection()]).BAUDRATES:
-            if rate >=9600 and rate <=115200:
-                baudrates.append(str(rate))
+        if comportDropdown.currentIndex() >= 0:
+            for rate in serial.Serial(ports[comportDropdown.currentIndex()]).BAUDRATES:
+                if rate >=9600 and rate <=115200:
+                    baudrates.append(str(rate))
 
-        baudrateDropdown.AppendItems(baudrates)
+            baudrateDropdown.addItems(baudrates)
 
-        if (self.BAUDRATE != 0) and (self.BAUDRATE in baudrates):
-          baudrateDropdown.SetSelection(baudrates.index(self.BAUDRATE))
-        else:
-          baudrateDropdown.SetSelection(baudrates.index('38400'))
+            if (self.BAUDRATE != 0) and (self.BAUDRATE in baudrates):
+                baudrateDropdown.setCurrentIndex(baudrates.index(self.BAUDRATE))
+            else:
+                baudrateDropdown.setCurrentIndex(baudrates.index('38400'))
         
-        sizer.Add(comportPanel, 0, border=5)
-        sizer.Add(baudratePanel, 0, border=5)
-        sizer.Add(timeoutPanel,0, border=5)
-        sizer.Add(reconnectPanel,0, border=5)
-        
-        box  = wx.BoxSizer(wx.HORIZONTAL)
-        box.Add(wx.Button(diag,wx.ID_OK),1)
-        box.Add(wx.Button(diag,wx.ID_CANCEL),1)
-
-        sizer.Add(box, 0, flag = wx.EXPAND, border = 5)
-        diag.SetSizer(sizer)
-        diag.SetAutoLayout(True)
-        sizer.Fit(diag)
-        r  = diag.ShowModal()
-        if r == wx.ID_OK:
+        okButton = QtWidgets.QPushButton('OK')
+        cancelButton = QtWidgets.QPushButton('Cancel')
+        buttonLayout = QtWidgets.QHBoxLayout()
+        buttonLayout.addWidget(okButton)
+        buttonLayout.addWidget(cancelButton)
+        okButton.clicked.connect(diag.accept)
+        cancelButton.clicked.connect(diag.reject)
+        sizer.addRow(buttonLayout)
+        diag.setLayout(sizer)
+        #diag.SetAutoLayout(True)
+        #sizer.Fit(diag)
+        r  = diag.exec()
+        if r == QtWidgets.QDialog.Accepted and comportDropdown.currentIndex() >=0 and baudrateDropdown.currentIndex() >=0:
             
             #create section
             if self.config.sections()==[]:
               self.config.add_section("pyOBD")
             #set and save COMPORT
-            self.COMPORT = ports[comportDropdown.GetSelection()]
+            self.COMPORT = ports[comportDropdown.currentIndex()]
             self.config.set("pyOBD","COMPORT",self.COMPORT)
 
-            self.BAUDRATE = baudrates[baudrateDropdown.GetSelection()]
+            self.BAUDRATE = baudrates[baudrateDropdown.currentIndex()]
             self.config.set("pyOBD","BAUDRATE",self.BAUDRATE)			
             
             #set and save SERTIMEOUT
-            self.SERTIMEOUT = int(timeoutCtrl.GetValue())
+            self.SERTIMEOUT = int(timeoutCtrl.text())
             self.config.set("pyOBD","SERTIMEOUT",self.SERTIMEOUT)
-            self.status.SetItem(3,1,self.COMPORT); 
+            self.status.item(3,1).setText(self.COMPORT); 
             
             #set and save RECONNATTEMPTS
-            self.RECONNATTEMPTS = int(reconnectCtrl.GetValue())
+            self.RECONNATTEMPTS = int(reconnectCtrl.text())
             self.config.set("pyOBD","RECONNATTEMPTS",self.RECONNATTEMPTS)
             
             #write configuration to cfg file
             self.config.write(open(self.configfilepath, 'w'))
 
-        
     def OnExit(self,e = None):
         import sys
         sys.exit(0)
 
-app = MyApp(0)
-app.MainLoop()
+app = MyApp(sys.argv)
+sys.exit(app.exec_())

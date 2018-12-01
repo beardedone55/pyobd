@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# vim: shiftwidth=4:tabstop=4:expandtab
 ###########################################################################
 # odb_io.py
 # 
@@ -84,18 +85,19 @@ class OBDPort:
          self.State = 1 #state SERIAL is 1 connected, 0 disconnected (connection failed)
          
          self._notify_window=_notify_window
-         wx.PostEvent(self._notify_window, DebugEvent([1,"Opening interface (serial port)"]))                
+         self._notify_window.DebugEvent.emit(1,'Opening interface (serial port)')
+         self.port = None
 
          try:
-             self.port = serial.Serial(portnum,baud, \
-             parity = par, stopbits = sb, bytesize = databits,timeout = to)
+             self.port = serial.Serial(portnum,baud, parity = par, stopbits = sb, \
+                                        bytesize = databits,timeout = to)
              
          except serial.SerialException:
              self.State = 0
              return None
              
-         wx.PostEvent(self._notify_window, DebugEvent([1,"Interface successfully " + self.port.portstr + " opened"]))
-         wx.PostEvent(self._notify_window, DebugEvent([1,"Connecting to ECU..."]))
+         self._notify_window.DebugEvent.emit(1,"Interface successfully " + self.port.portstr + " opened")
+         self._notify_window.DebugEvent.emit(1,"Connecting to ECU...")
          
          count=0
          while 1: #until error is returned try to connect
@@ -106,23 +108,23 @@ class OBDPort:
                 return None
                 
              self.ELMver = self.get_result()
-             wx.PostEvent(self._notify_window, DebugEvent([2,"atz response:" + self.ELMver]))
+             self._notify_window.DebugEvent.emit(2,"atz response:" + self.ELMver)
              self.send_command("ate0")  # echo off
-             wx.PostEvent(self._notify_window, DebugEvent([2,"ate0 response:" + self.get_result()]))
+             self._notify_window.DebugEvent.emit(2,"ate0 response:" + self.get_result())
              self.send_command("0100")
              ready = self.get_result()
-             wx.PostEvent(self._notify_window, DebugEvent([2,"0100 response1:" + ready]))
+             self._notify_window.DebugEvent.emit(2,"0100 response1:" + ready)
              if ready[0:5]=="41 00":
                 return None
              else:             
                 #ready=ready[-5:] #Expecting error message: BUSINIT:.ERROR (parse last 5 chars)
-                wx.PostEvent(self._notify_window, DebugEvent([2,"Connection attempt failed:" + ready]))
+                self._notify_window.DebugEvent.emit(2,"Connection attempt failed:" + ready)
                 time.sleep(5)
                 if count==RECONNATTEMPTS:
                   self.close()
                   self.State = 0
                   return None
-                wx.PostEvent(self._notify_window, DebugEvent([2,"Connection attempt:" + str(count)]))
+                self._notify_window.DebugEvent.emit(2,"Connection attempt:" + str(count))
                 count=count+1          
               
      def close(self):
@@ -143,7 +145,7 @@ class OBDPort:
              for c in cmd:
                  self.port.write(c.encode('ascii', 'ignore'))
              self.port.write("\r\n".encode('ascii', 'ignore'))
-             wx.PostEvent(self._notify_window, DebugEvent([3,"Send command:" + cmd]))
+             self._notify_window.DebugEvent.emit(3,"Send command:" + cmd)
 
      def interpret_result(self,code):
          """Internal use only: not a public interface"""
@@ -183,10 +185,10 @@ class OBDPort:
                  else:
                      if buffer != "" or c != ">": #if something is in buffer, add everything
                       buffer = buffer + c
-             wx.PostEvent(self._notify_window, DebugEvent([3,"Get result:" + buffer]))
+             self._notify_window.DebugEvent.emit(3,"Get result:" + buffer)
              return buffer
          else:
-            wx.PostEvent(self._notify_window, DebugEvent([3,"NO self.port!" + buffer]))
+            self._notify_window.DebugEvent.emit(3,"NO self.port!" + buffer)
          return None
 
      # get sensor value from command
