@@ -24,7 +24,8 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ############################################################################
 
-from PyQt5 import QtWidgets,QtCore
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
     
 import obd_io #OBD2 funcs
 import os #os.environ
@@ -58,46 +59,41 @@ ID_HELP_ORDER = 510
 #defines notification event for debug tracewindow
 from debugEvent import *
        
-class MyApp(QtWidgets.QApplication):
+class MyApp(QApplication):
 
-    StatusEvent = QtCore.pyqtSignal(list)
-    ResultEvent = QtCore.pyqtSignal(list)
-    DebugEvent = QtCore.pyqtSignal(int,str)
-    TestEvent = QtCore.pyqtSignal(list)
-    DTCEvent = QtCore.pyqtSignal([int],[list])
+    StatusEvent = pyqtSignal(list)
+    ResultEvent = pyqtSignal(list)
+    DebugEvent = pyqtSignal(int,str)
+    TestEvent = pyqtSignal(list)
+    DTCEvent = pyqtSignal([int],[list])
 
     def __init__(self, myArgs):
-        QtWidgets.QApplication.__init__(self, myArgs)
+        QApplication.__init__(self, myArgs)
         self.OnInit()
 
     # A listctrl which auto-resizes the column boxes to fill
     # removed style for now
-    class MyListCtrl(QtWidgets.QTableWidget):
-        def __init__(self, pos = None,
-                     size = None):
-            QtWidgets.QTableWidget.__init__(self)
+    class MyListCtrl(QTableWidget):
+        def __init__(self):
+            QTableWidget.__init__(self)
             self.horizontalHeader().setStretchLastSection(True)
             self.verticalHeader().hide()
-            self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
-            if pos is not None:
-                self.move(pos)
-
-            if size is not None:
-                self.resize(size)
+            self.setSelectionBehavior(QAbstractItemView.SelectRows)
                 
         def addTableRow(self, rowSize, data):
             newRow = self.rowCount()
             self.insertRow(newRow)
             for i in range(0,rowSize):
-                cellData = QtWidgets.QTableWidgetItem(data[i])
-                cellData.setFlags(cellData.flags() & ~QtCore.Qt.ItemIsEditable) #Make item uneditable
+                cellData = QTableWidgetItem(data[i])
+                cellData.setFlags(cellData.flags() & ~Qt.ItemIsEditable) #Make item uneditable
                 self.setItem(newRow, i, cellData)
 
-    class MyPanel(QtWidgets.QWidget):
-        def __init__(self, listCtrl):
-            QtWidgets.QWidget.__init__(self)
-            layout = QtWidgets.QVBoxLayout()
-            layout.addWidget(listCtrl)
+    #Add a Widget to a panel with a layout and return the Panel
+    class MyPanel(QWidget):
+        def __init__(self, widget):
+            QWidget.__init__(self)
+            layout = QVBoxLayout()
+            layout.addWidget(widget)
             self.setLayout(layout)
 
     class sensorProducer(threading.Thread):
@@ -256,33 +252,22 @@ class MyApp(QtWidgets.QApplication):
         self.sensors.setHorizontalHeaderLabels(['Supported','Sensor','Value'])
         self.sensors.setColumnWidth(0,70)
         self.sensors.setColumnWidth(1,250)
-        self.sensors.horizontalHeaderItem(1).setTextAlignment(QtCore.Qt.AlignRight)
+        self.sensors.horizontalHeaderItem(1).setTextAlignment(Qt.AlignRight)
 
         for i in range(0, len(obd_io.obd_sensors.SENSORS)):
             s = obd_io.obd_sensors.SENSORS[i].name
             self.sensors.addTableRow(3, ['', s, ''])
-            self.sensors.item(i,1).setTextAlignment(QtCore.Qt.AlignRight)
+            self.sensors.item(i,1).setTextAlignment(Qt.AlignRight)
         
-        ####################################################################
-        # This little bit of magic keeps the list the same size as the frame
-        #TODO
-        #def OnPSize(e, win = panel):
-            #panel.SetSize(e.GetSize())
-            #self.sensors.SetSize(e.GetSize())
-            #w,h = self.frame.GetClientSize()
-            #self.sensors.SetSize(0,HOFFSET_LIST, w-10 , h - 35 )
-
-        #self.sensors..Bind(wx.EVT_SIZE,OnPSize)
-        ####################################################################
         sensorPage = self.MyPanel(self.sensors)
         self.nb.addTab(sensorPage, "Sensors")
     
     def build_DTC_page(self):
-        self.DTCpanel = QtWidgets.QWidget()
-        self.GetDTCButton  = QtWidgets.QPushButton('Get DTC')
-        self.ClearDTCButton = QtWidgets.QPushButton('Clear DTC')
+        self.DTCpanel = QWidget()
+        self.GetDTCButton  = QPushButton('Get DTC')
+        self.ClearDTCButton = QPushButton('Clear DTC')
         
-        panelLayout = QtWidgets.QGridLayout()
+        panelLayout = QGridLayout()
         panelLayout.addWidget(self.GetDTCButton,0,0)
         panelLayout.addWidget(self.ClearDTCButton,0,1)
         
@@ -298,18 +283,6 @@ class MyApp(QtWidgets.QApplication):
         self.dtc.setColumnWidth(1,100)
         panelLayout.addWidget(self.dtc,1,0,1,2)
         self.DTCpanel.setLayout(panelLayout)
-        ####################################################################
-        # This little bit of magic keeps the list the same size as the frame
-        #TODO
-        #def OnPSize(e, win = self.DTCpanel):
-            #self.DTCpanel.SetSize(e.GetSize())
-            #self.dtc.SetSize(e.GetSize())
-            #w,h = self.frame.GetClientSize()
-            ## I have no idea where 70 comes from
-            #self.dtc.SetSize(0,HOFFSET_LIST, w-16 , h - 70 )
-
-        #self.DTCpanel.Bind(wx.EVT_SIZE,OnPSize)
-        ####################################################################
         
         self.nb.addTab(self.DTCpanel, "DTC")
          
@@ -325,7 +298,7 @@ class MyApp(QtWidgets.QApplication):
         self.DEBUGLEVEL = 0 #debug everthing
 
         def CreateMenuItem(ItemName, ToolTipText, ItemTrigger):
-            menuItemAction = QtWidgets.QAction(ItemName)
+            menuItemAction = QAction(ItemName)
             menuItemAction.setStatusTip(ToolTipText)
             menuItemAction.triggered.connect(ItemTrigger)
             return menuItemAction
@@ -352,7 +325,7 @@ class MyApp(QtWidgets.QApplication):
           self.RECONNATTEMPTS=self.config.getint("pyOBD","RECONNATTEMPTS")
           self.SERTIMEOUT=self.config.getint("pyOBD","SERTIMEOUT")
         
-        frame = QtWidgets.QMainWindow()
+        frame = QMainWindow()
         frame.setWindowTitle('pyOBD-II')
         self.frame=frame
 
@@ -364,7 +337,7 @@ class MyApp(QtWidgets.QApplication):
         
         # Main notebook frames
         
-        self.nb = QtWidgets.QTabWidget(frame)
+        self.nb = QTabWidget(frame)
         self.frame.setCentralWidget(self.MyPanel(self.nb))
 
         self.status = self.MyListCtrl()
@@ -468,17 +441,17 @@ either version 2 of the License, or (at your option) any later version.
 PyOBD is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; \
 without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. \
 See the GNU General Public License for more details. You should have received a copy of \
-the GNU General Public License along with PyOBD; if not, write to 
+the GNU General Public License along with PyOBD; if not, write to:
 
 Free Software Foundation, Inc.
 59 Temple Place
 Suite 330
-Boston, MA  02111-1307  USA
+Boston, MA  02111-1307
+USA
 """
 
-        HelpAboutDlg = QtWidgets.QMessageBox(QtWidgets.QMessageBox.Information, 'About', Text, QtWidgets.QMessageBox.Ok, self.frame)
+        HelpAboutDlg = QMessageBox(QMessageBox.Information, 'About', Text, QMessageBox.Ok, self.frame)
         HelpAboutDlg.exec()
-        #self.HelpAboutDlg.Destroy()
 
     def OnResult(self,event):
         self.sensors.addTableRow(3, event)
@@ -525,30 +498,30 @@ Boston, MA  02111-1307  USA
 
     def CodeLookup(self,e = None):
         id = 0
-        diag = QtWidgets.QDialog(self.frame)
+        diag = QDialog(self.frame)
         diag.setWindowTitle('Diagnostic Trouble Codes')
 
-        tree = QtWidgets.QTreeWidget(diag)
+        tree = QTreeWidget(diag)
 
-        root = QtWidgets.QTreeWidgetItem(tree)
+        root = QTreeWidgetItem(tree)
         root.setText(0,"Code Reference")
         proot = root; # tree.AppendItem(root,"Powertrain (P) Codes")
         codes = sorted(pcodes.keys())
         group = ''
         for c in codes:
             if c[:3] != group:
-                group_root = QtWidgets.QTreeWidgetItem(proot)
+                group_root = QTreeWidgetItem(proot)
                 group_root.setText(0,c[:3]+"XX")
                 proot.addChild(group_root)
                 group = c[:3]
-            leaf = QtWidgets.QTreeWidgetItem(group_root)
+            leaf = QTreeWidgetItem(group_root)
             leaf.setText(0,c)
             group_root.addChild(leaf)
-            codeText = QtWidgets.QTreeWidgetItem(leaf)
+            codeText = QTreeWidgetItem(leaf)
             codeText.setText(0,pcodes[c])
             leaf.addChild(codeText)
 
-        layout = QtWidgets.QHBoxLayout(diag)
+        layout = QHBoxLayout(diag)
         layout.addWidget(tree)
         tree.header().hide()
         diag.setLayout(layout)
@@ -558,12 +531,12 @@ Boston, MA  02111-1307  USA
         
     def QueryClear(self,e):
         id = 0
-        diag = QtWidgets.QMessageBox(QtWidgets.QMessageBox.Question, 'Clear DTC?', \
+        diag = QMessageBox(QMessageBox.Question, 'Clear DTC?', \
                                      'Are you sure you wish to clear all DTC codes and freeze frame data?',\
-                                     QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No, self.frame)
+                                     QMessageBox.Yes | QMessageBox.No, self.frame)
 
         r  = diag.exec()
-        if r == QtWidgets.QMessageBox.Yes:
+        if r == QMessageBox.Yes:
             self.ClearDTC()
 
     def ClearDTC(self):
@@ -572,7 +545,7 @@ Boston, MA  02111-1307  USA
         
     
     def scanSerial(self):
-        """scan for available ports. return a list of serial names"""
+        #Scan for available ports. Return a list of serial names
         available = []
         for i in range(256):
           try: #scan Windows COM*
@@ -626,27 +599,27 @@ Boston, MA  02111-1307  USA
 
     def Configure(self,e = None):
         id = 0
-        diag = QtWidgets.QDialog(self.frame)
+        diag = QDialog(self.frame)
         diag.setWindowTitle("Configure")
-        sizer = QtWidgets.QFormLayout()
+        sizer = QFormLayout()
         
         ports = self.scanSerial()
-        comportDropdown = QtWidgets.QComboBox()
+        comportDropdown = QComboBox()
         comportDropdown.addItems(ports)
         sizer.addRow('Choose Serial Port: ', comportDropdown)
 
         #baudrates = ['9600', '19200', '28800', '38400', '48000', '115200']
         baudrates = [ ]
-        baudrateDropdown = QtWidgets.QComboBox()
+        baudrateDropdown = QComboBox()
         baudrateDropdown.addItems(baudrates)
         sizer.addRow('Choose Baud Rate: ', baudrateDropdown)
 
         #timeOut input control                
-        timeoutCtrl = QtWidgets.QLineEdit(str(self.SERTIMEOUT))
+        timeoutCtrl = QLineEdit(str(self.SERTIMEOUT))
         sizer.addRow('Timeout:', timeoutCtrl)
         
         #reconnect attempt input control                
-        reconnectCtrl = QtWidgets.QLineEdit(str(self.RECONNATTEMPTS))
+        reconnectCtrl = QLineEdit(str(self.RECONNATTEMPTS))
         sizer.addRow('Reconnect attempts:', reconnectCtrl)
                
         #set actual serial port choice
@@ -667,19 +640,19 @@ Boston, MA  02111-1307  USA
             else:
                 baudrateDropdown.setCurrentIndex(baudrates.index('38400'))
         
-        okButton = QtWidgets.QPushButton('OK')
-        cancelButton = QtWidgets.QPushButton('Cancel')
-        buttonLayout = QtWidgets.QHBoxLayout()
+        okButton = QPushButton('OK')
+        cancelButton = QPushButton('Cancel')
+        buttonLayout = QHBoxLayout()
         buttonLayout.addWidget(okButton)
         buttonLayout.addWidget(cancelButton)
         okButton.clicked.connect(diag.accept)
         cancelButton.clicked.connect(diag.reject)
         sizer.addRow(buttonLayout)
         diag.setLayout(sizer)
-        #diag.SetAutoLayout(True)
-        #sizer.Fit(diag)
+
         r  = diag.exec()
-        if r == QtWidgets.QDialog.Accepted and comportDropdown.currentIndex() >=0 and baudrateDropdown.currentIndex() >=0:
+
+        if r == QDialog.Accepted and comportDropdown.currentIndex() >=0 and baudrateDropdown.currentIndex() >=0:
             
             #create section
             if self.config.sections()==[]:
