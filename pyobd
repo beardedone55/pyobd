@@ -426,31 +426,26 @@ class MyApp(QApplication):
         webbrowser.open("http://www.obdtester.com/order")
     
     def OnHelpAbout(self,event): #todo about box
-        Text = """PyOBD is an automotive OBD2 diagnosting application using ELM237 cable.
+        Text = """<p>PyOBD is an automotive OBD2 diagnostic application that works with ELM237 cables.</p>
 
-(C) 2008-2009 SeCons Ltd.
-(C) 2004 Charles Donour Sizemore
+<p>(C) 2008-2009 SeCons Ltd.<br>
+(C) 2004 Charles Donour Sizemore</p>
 
-http://www.obdtester.com/
-http://www.secons.com/
+<p><a href='http://www.obdtester.com/'>http://www.obdtester.com/</a><br>
+<a href='http://www.secons.com/'>http://www.secons.com/</a></p>
 
-PyOBD is free software; you can redistribute it and/or modify \
-it under the terms of the GNU General Public License as published by the Free Software Foundation; \
-either version 2 of the License, or (at your option) any later version.
+<p>PyOBD is free software; you can redistribute it and/or modify 
+it under the terms of the GNU General Public License as published by the Free Software Foundation; 
+either version 2 of the License, or (at your option) any later version.</p>
 
-PyOBD is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; \
-without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. \
-See the GNU General Public License for more details. You should have received a copy of \
-the GNU General Public License along with PyOBD; if not, write to:
+<p>PyOBD is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+See the GNU General Public License for more details.</p>
 
-Free Software Foundation, Inc.
-59 Temple Place
-Suite 330
-Boston, MA  02111-1307
-USA
+<p>You should have received a copy of the GNU General Public License along with PyOBD; if not, see <a href='https://www.gnu.org/licenses/'>https://www.gnu.org/licenses/.</a></p>
 """
-
         HelpAboutDlg = QMessageBox(QMessageBox.Information, 'About', Text, QMessageBox.Ok, self.frame)
+        HelpAboutDlg.setTextFormat(Qt.RichText)
         HelpAboutDlg.exec()
 
     def OnResult(self,event):
