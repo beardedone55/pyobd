@@ -26,6 +26,7 @@
 
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
+from PyQt5.QtGui import *
     
 import obd_io #OBD2 funcs
 import os #os.environ
@@ -33,6 +34,7 @@ import os #os.environ
 import threading
 import sys
 import serial
+from serial.tools import list_ports
 import platform
 import time
 import configparser #safe application configuration
@@ -96,6 +98,14 @@ class MyApp(QApplication):
             layout.addWidget(widget)
             self.setLayout(layout)
 
+    class MyNumberInput(QLineEdit):
+        def __init__(self, defaultText='', width=20):
+            QLineEdit.__init__(self, defaultText)
+            self.setFixedWidth(width)
+            validator = QIntValidator()
+            validator.setBottom(0)
+            self.setValidator(validator)
+            
     class sensorProducer(threading.Thread):
         def __init__(self, _notify_window,portName,baudrate,SERTIMEOUT,RECONNATTEMPTS,_nb):
             from queue import Queue
@@ -317,7 +327,7 @@ class MyApp(QApplication):
         if self.config.read(self.configfilepath)==[]:
           self.COMPORT="/dev/ttyACM0"
           self.RECONNATTEMPTS=5
-          self.SERTIMEOUT=2
+          self.SERTIMEOUT=5
           self.BAUDRATE=9600
         else:
           self.COMPORT=self.config.get("pyOBD","COMPORT")
@@ -346,7 +356,8 @@ class MyApp(QApplication):
         self.status.setColumnWidth(0,100)
         self.status.addTableRow(2, ['Link State', 'Disconnected'])
         self.status.addTableRow(2, ['Protocol', '---'])
-        self.status.addTableRow(2, ['Cable version', '---'])
+        self.status.addTableRow(2, ['Cable Version', '---'])
+        self.status.addTableRow(2, ['COM Port', self.COMPORT])
 
         statusPanel  = self.MyPanel(self.status)
         self.nb.addTab(statusPanel, "Status")
@@ -540,56 +551,10 @@ See the GNU General Public License for more details.</p>
         
     
     def scanSerial(self):
-        #Scan for available ports. Return a list of serial names
+        """Scan for available ports. Return a list of serial names"""
         available = []
-        for i in range(256):
-          try: #scan Windows COM*
-            s = serial.Serial("COM" + str(i))
-            available.append(s.portstr)
-            s.close()   # explicit close 'cause of delayed GC in java
-          except serial.SerialException:
-            pass
-        for i in range(256):
-          try: #scan standart ttyS*
-            s = serial.Serial("/dev/ttyS" + str(i))
-            available.append(s.portstr)
-            s.close()   # explicit close 'cause of delayed GC in java
-          except serial.SerialException:
-            pass
-        for i in range(256):
-          try: #scan USB ttyACM
-            s = serial.Serial("/dev/ttyACM"+str(i))
-            available.append(s.portstr)
-            s.close()   # explicit close 'cause of delayed GC in java
-          except serial.SerialException:
-            pass
-        for i in range(256):
-          try:
-            s = serial.Serial("/dev/ttyUSB"+str(i))
-            available.append(s.portstr)
-            s.close()   # explicit close 'cause of delayed GC in java
-          except serial.SerialException:
-            pass
-        for i in range(256):
-          try:
-            s = serial.Serial("/dev/ttyd"+str(i))
-            available.append(s.portstr)
-            s.close()   # explicit close 'cause of delayed GC in java
-          except serial.SerialException:
-            pass
-            
-        # ELM-USB shows up as /dev/tty.usbmodemXXXX, where XXXX is a changing hex string
-        # on connection; so we have to search through all 64K options
-        if len(platform.mac_ver()[0])!=0:  #search only on MAC
-          for i in range (65535):
-            extension = hex(i).replace("0x","", 1)
-            try:
-              s = serial.Serial("/dev/tty.usbmodem"+extension)
-              available.append(s.portstr)
-              s.close()
-            except serial.SerialException:
-              pass 
-        
+        for portItem in serial.tools.list_ports.comports():
+            available.append(portItem.device)
         return available
 
     def Configure(self,e = None):
@@ -610,11 +575,11 @@ See the GNU General Public License for more details.</p>
         sizer.addRow('Choose Baud Rate: ', baudrateDropdown)
 
         #timeOut input control                
-        timeoutCtrl = QLineEdit(str(self.SERTIMEOUT))
+        timeoutCtrl = self.MyNumberInput(str(self.SERTIMEOUT))
         sizer.addRow('Timeout:', timeoutCtrl)
         
         #reconnect attempt input control                
-        reconnectCtrl = QLineEdit(str(self.RECONNATTEMPTS))
+        reconnectCtrl = self.MyNumberInput(str(self.RECONNATTEMPTS))
         sizer.addRow('Reconnect attempts:', reconnectCtrl)
                
         #set actual serial port choice
@@ -658,14 +623,24 @@ See the GNU General Public License for more details.</p>
 
             self.BAUDRATE = baudrates[baudrateDropdown.currentIndex()]
             self.config.set("pyOBD","BAUDRATE",self.BAUDRATE)			
-            
+             
             #set and save SERTIMEOUT
-            self.SERTIMEOUT = int(timeoutCtrl.text())
+            #If user enters a blank, it will remain unchanged
+            try:
+                self.SERTIMEOUT = int(timeoutCtrl.text())
+            except:
+                pass
+
             self.config.set("pyOBD","SERTIMEOUT",self.SERTIMEOUT)
             self.status.item(3,1).setText(self.COMPORT); 
             
             #set and save RECONNATTEMPTS
-            self.RECONNATTEMPTS = int(reconnectCtrl.text())
+            #If user enters a blank, it will remain unchanged
+            try:
+                self.RECONNATTEMPTS = int(reconnectCtrl.text())
+            except ValueError:
+                pass
+
             self.config.set("pyOBD","RECONNATTEMPTS",self.RECONNATTEMPTS)
             
             #write configuration to cfg file

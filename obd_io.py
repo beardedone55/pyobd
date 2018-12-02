@@ -99,33 +99,53 @@ class OBDPort:
          self._notify_window.DebugEvent.emit(1,"Interface successfully " + self.port.portstr + " opened")
          self._notify_window.DebugEvent.emit(1,"Connecting to ECU...")
          
+         def ConnectionError(count, msg = ''):
+                self._notify_window.DebugEvent.emit(2,"Connection attempt failed: " + msg)
+                count += 1
+                if count <= RECONNATTEMPTS:
+                    time.sleep(5)
+                    self._notify_window.DebugEvent.emit(2,"Reconnection attempt:" + str(count))
+                return count
+
          count=0
-         while 1: #until error is returned try to connect
+         while count <= RECONNATTEMPTS: #until error is returned try to connect
              try:
                 self.send_command("atz")   # initialize
              except serial.SerialException:
                 self.State = 0
                 return None
-                
-             self.ELMver = self.get_result()
-             self._notify_window.DebugEvent.emit(2,"atz response:" + self.ELMver)
+
+             res = self.get_result()
+             if res == None:
+                 count = ConnectionError(count)
+                 continue
+
+             self.ELMver = res[-1]  #Last Non-Blank Line Returned is ELM Version
+             self._notify_window.DebugEvent.emit(2,"atz response: " + self.ELMver)
              self.send_command("ate0")  # echo off
-             self._notify_window.DebugEvent.emit(2,"ate0 response:" + self.get_result())
+             res = self.get_result() # ATE0 command should echo command and return OK
+             if res == None:
+                 count = ConnectionError(count, res[0])
+                 continue
+
+             self._notify_window.DebugEvent.emit(2,"ate0 response: " + res[-1])
+
              self.send_command("0100")
-             ready = self.get_result()
-             self._notify_window.DebugEvent.emit(2,"0100 response1:" + ready)
-             if ready[0:5]=="41 00":
-                return None
-             else:             
-                #ready=ready[-5:] #Expecting error message: BUSINIT:.ERROR (parse last 5 chars)
-                self._notify_window.DebugEvent.emit(2,"Connection attempt failed:" + ready)
-                time.sleep(5)
-                if count==RECONNATTEMPTS:
-                  self.close()
-                  self.State = 0
-                  return None
-                self._notify_window.DebugEvent.emit(2,"Connection attempt:" + str(count))
-                count=count+1          
+             res = self.get_result()
+             if res == None:
+                count = ConnectionError(count)
+                continue
+
+             for ready in res:
+                self._notify_window.DebugEvent.emit(2,"0100 response1: " + ready)
+                if ready[0:5]=="41 00":
+                    return None
+             #ready=ready[-5:] #Expecting error message: BUSINIT:.ERROR (parse last 5 chars)
+             count = ConnectionError(count, res[-1])
+
+         self.close()
+         self.State = 0
+         return None
               
      def close(self):
          """ Resets device and closes all associated filehandles"""
@@ -135,17 +155,17 @@ class OBDPort:
             self.port.close()
          
          self.port = None
-         self.ELMver = "Unknown"
+         #self.ELMver = "Unknown"
 
      def send_command(self, cmd):
          """Internal use only: not a public interface"""
          if self.port:
              self.port.flushOutput()
              self.port.flushInput()
-             for c in cmd:
-                 self.port.write(c.encode('ascii', 'ignore'))
-             self.port.write("\r\n".encode('ascii', 'ignore'))
-             self._notify_window.DebugEvent.emit(3,"Send command:" + cmd)
+             cmd += '\r\n'
+             self.port.write(cmd.encode('ascii', 'ignore'))
+             self.port.flush()
+             self._notify_window.DebugEvent.emit(3,"Send command: " + cmd)
 
      def interpret_result(self,code):
          """Internal use only: not a public interface"""
@@ -153,13 +173,15 @@ class OBDPort:
          # It should look something like this:
          # '41 11 0 0\r\r'
          
+         # get the first thing returned, echo should be off
+         if code != None:
+             code = code[0]
+
          # 9 seems to be the length of the shortest valid response
          if len(code) < 7:
              raise "BogusCode"
          
-         # get the first thing returned, echo should be off
-         code = string.split(code, "\r")
-         code = code[0]
+         #code = string.split(code, "\r")
          
          #remove whitespace
          code = string.split(code)
@@ -172,21 +194,33 @@ class OBDPort:
          # first 4 characters are code from ELM
          code = code[4:]
          return code
-    
+     
+     #get_result reads input from serial port and 
+     #returns array of lines returned with 
      def get_result(self):
          """Internal use only: not a public interface"""
-         time.sleep(0.1)
+         #time.sleep(0.1)
          if self.port:
              buffer = ""
-             while 1:
+             result = []
+
+             while True: 
                  c = self.port.read(1).decode('utf8', 'ignore')
-                 if c == '\r' and len(buffer) > 0:
+                 if len(c) == 0 or c == '>': #Loop until SOI or buffer is empty
                      break
-                 else:
-                     if buffer != "" or c != ">": #if something is in buffer, add everything
-                      buffer = buffer + c
-             self._notify_window.DebugEvent.emit(3,"Get result:" + buffer)
-             return buffer
+                 if c != '\r' and c != '\n': #Ignore line feeds
+                     buffer = buffer + c
+                 elif (c == '\r' or c == '\n') and len(buffer) > 0: #ignore blank lines
+                     result.append(buffer) #add line to return result
+                     buffer = ''
+                     
+             for line in result:
+                 self._notify_window.DebugEvent.emit(3,"Get result: " + line)
+
+             if len(result) == 0:
+                 result = None
+
+             return result
          else:
             self._notify_window.DebugEvent.emit(3,"NO self.port!" + buffer)
          return None
@@ -198,7 +232,7 @@ class OBDPort:
          self.send_command(cmd)
          data = self.get_result()
          
-         if data:
+         if data != None:
              data = self.interpret_result(data)
              if data != "NODATA":
                  data = sensor.value(data)
@@ -258,6 +292,10 @@ class OBDPort:
           for i in range(0, ((dtcNumber+2)/3)):
             self.send_command(GET_DTC_COMMAND)
             res = self.get_result()
+            if res == None:
+                continue
+
+            res = res[0]
             print ("DTC result:" + res)
             for i in range(0, 3):
                 val1 = hex_to_int(res[3+i*6:5+i*6])
@@ -275,10 +313,12 @@ class OBDPort:
           self.send_command(GET_FREEZE_DTC_COMMAND)
           res = self.get_result()
           
-          if res[:7] == "NO DATA": #no freeze frame
+          if res == None or res[0][:7] == "NO DATA": #no freeze frame
             return DTCCodes
           
-          print ("DTC freeze result:" + res)
+          res = res[0]
+
+          print ("DTC freeze result: " + res)
           for i in range(0, 3):
               val1 = hex_to_int(res[3+i*6:5+i*6])
               val2 = hex_to_int(res[6+i*6:8+i*6]) #get DTC codes from response (3 DTC each 2 bytes)
@@ -296,6 +336,8 @@ class OBDPort:
          """Clears all DTCs and freeze frame data"""
          self.send_command(CLEAR_DTC_COMMAND)     
          r = self.get_result()
+         if r != None:
+            r = r[0]
          return r
      
      def log(self, sensor_index, filename): 
