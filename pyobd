@@ -67,7 +67,8 @@ class MyApp(QApplication):
     ResultEvent = pyqtSignal(list)
     DebugEvent = pyqtSignal(int,str)
     TestEvent = pyqtSignal(list)
-    DTCEvent = pyqtSignal([int],[list])
+    DTCEvent = pyqtSignal(list)
+    DTCClearEvent = pyqtSignal(int)
 
     def __init__(self, myArgs):
         QApplication.__init__(self, myArgs)
@@ -82,13 +83,24 @@ class MyApp(QApplication):
             self.verticalHeader().hide()
             self.setSelectionBehavior(QAbstractItemView.SelectRows)
                 
-        def addTableRow(self, rowSize, data):
+        def addTableRow(self, rowSize, data, bold=False, italic=False, alignment=Qt.AlignLeft):
             newRow = self.rowCount()
             self.insertRow(newRow)
-            for i in range(0,rowSize):
+            loopcnt = rowSize if rowSize <= len(data) else len(data)
+            for i in range(0,loopcnt):
                 cellData = QTableWidgetItem(data[i])
                 cellData.setFlags(cellData.flags() & ~Qt.ItemIsEditable) #Make item uneditable
+                cellData.setTextAlignment(alignment | Qt.AlignVCenter)
+                font = cellData.font()
+                font.setBold(bold)
+                font.setItalic(italic)
+                cellData.setFont(font)
+
                 self.setItem(newRow, i, cellData)
+            if rowSize > len(data):
+                self.setSpan(newRow, len(data)-1, 1, rowSize - (len(data)-1))  
+                
+            
 
     #Add a Widget to a panel with a layout and return the Panel
     class MyPanel(QWidget):
@@ -153,14 +165,13 @@ class MyApp(QApplication):
               
             self._notify_window.StatusEvent.emit([0,1,"Connected"])
             self._notify_window.StatusEvent.emit([2,1,self.port.ELMver])
+            self._notify_window.StatusEvent.emit([1,1,self.port.protocol])
             prevstate=-1
             curstate=-1
             while self._notify_window.ThreadControl!=666:
                 prevstate=curstate
                 curstate=self._nb.currentIndex()
-                if curstate==0: #show status tab
-                  pass
-                elif curstate==1: #show tests tab
+                if curstate==1: #show tests tab
                   res=self.port.get_tests_MIL()                
                   for i in range(0,len(res)):
                     self._notify_window.TestEvent.emit([i,1,res[i]])
@@ -172,29 +183,6 @@ class MyApp(QApplication):
                           self._notify_window.ResultEvent.emit([i,2,"%s (%s)" % (s[1], s[2])])
                       if self._notify_window.ThreadControl==666:
                           break
-                elif curstate==3: #show DTC tab
-                  if self._notify_window.ThreadControl == 1: #clear DTC
-                      self.port.clear_dtc()
-
-                      if self._notify_window.ThreadControl==666: #before reset ThreadControl we must check if main thread did not want us to finish
-                          break
-                          
-                      self._notify_window.ThreadControl=0
-                      prevstate=-1 # to reread DTC
-                  if self._notify_window.ThreadControl == 2: #reread DTC
-                      prevstate=-1
-                      
-                      if self._notify_window.ThreadControl==666:
-                          break
-                          
-                      self._notify_window.ThreadControl=0
-                  if prevstate!=3: 
-                    self._notify_window.DTCEvent(0) #clear list
-                    DTCCodes=self.port.get_dtc()
-                    if len(DTCCodes)==0:
-                      self._notify_window.DTCEvent.emit(["","","No DTC codes (codes cleared)"])
-                    for i in range (0,len(DTCCodes)):
-                      self._notify_window.DTCEvent.emit([DTCCodes[i][1],DTCCodes[i][0],pcodes[DTCCodes[i][1]]])   
                 else:
                  pass 
             self.stop()
@@ -235,7 +223,11 @@ class MyApp(QApplication):
         self.ClearDTCButton.setEnabled(True)
 
         def sensor_toggle(row, col):
-            state = self.senprod.active[row]
+            if row < len(self.senprod.active):
+                state = self.senprod.active[row]
+            else:
+                return
+
             if   state == 0:
                 self.senprod.on(sel)
                 self.sensors.item(sel,1).setText("1")
@@ -342,6 +334,7 @@ class MyApp(QApplication):
         self.ResultEvent.connect(self.OnResult)
         self.DebugEvent.connect(self.OnDebug)
         self.DTCEvent.connect(self.OnDtc)
+        self.DTCClearEvent.connect(self.OnDtcClear)
         self.StatusEvent.connect(self.OnStatus)
         self.TestEvent.connect(self.OnTests)
         
@@ -412,10 +405,11 @@ class MyApp(QApplication):
         self.getDTCAction = CreateMenuItem("Get DTCs",   " Get DTC Codes", self.GetDTC)
         self.clearDTCAction = CreateMenuItem("Clear DTC",  " Clear DTC Codes", self.QueryClear)
         self.codeLookupAction = CreateMenuItem("Code Lookup"," Lookup DTC Codes", self.CodeLookup)
+        #self.testDTCAction = CreateMenuItem("Test DTC"," Test DTCs", self.onTestDTC)
         self.dtcmenu.addAction(self.getDTCAction)
         self.dtcmenu.addAction(self.clearDTCAction)
         self.dtcmenu.addAction(self.codeLookupAction)
-
+        #self.dtcmenu.addAction(self.testDTCAction)
         
         self.aboutAction = CreateMenuItem("About this program","",self.OnHelpAbout)
         self.visitAction = CreateMenuItem("Visit program homepage","",self.OnHelpVisit)
@@ -430,13 +424,13 @@ class MyApp(QApplication):
 
         return True
 
-    def OnHelpVisit(self,event):
+    def OnHelpVisit(self):
         webbrowser.open("http://www.obdtester.com/pyobd")
     
-    def OnHelpOrder(self,event):
+    def OnHelpOrder(self):
         webbrowser.open("http://www.obdtester.com/order")
     
-    def OnHelpAbout(self,event): #todo about box
+    def OnHelpAbout(self): #todo about box
         Text = """<p>PyOBD is an automotive OBD2 diagnostic application that works with ELM237 cables.</p>
 
 <p>(C) 2008-2009 SeCons Ltd.<br>
@@ -473,18 +467,27 @@ See the GNU General Public License for more details.</p>
          
     def OnDebug(self, level, msg):    
         self.TraceDebug(level, msg)
+
+    def OnDtcClear(self, event):
+        if event == 0:
+            self.dtc.setRowCount(0)
+        else:
+            self.DebugEvent.emit(1,'Unexpected OnDtcClear -> %d' % event)
     
     def OnDtc(self,event):
-        if event == 0: #signal, that DTC was cleared
-            self.dtc.clearContents()
+        if len(event) == 1:
+            alignment = Qt.AlignHCenter
+            bold = True
         else:
-            self.dtc.addTableRow(len(event), event.data)
+            alignment = Qt.AlignLeft
+            bold = False
+        self.dtc.addTableRow(3, event, bold=bold, alignment=alignment)
     
-    def OnDisconnect(self,event): #disconnect connection to ECU
+    def OnDisconnect(self): #disconnect connection to ECU
         self.ThreadControl=666
         self.sensor_control_off()
         
-    def OpenPort(self,e):
+    def OpenPort(self):
         
         if self.senprod: # signal current producers to finish
             self.senprod.stop()
@@ -494,15 +497,31 @@ See the GNU General Public License for more details.</p>
         
         self.sensor_control_on()
         
-    def GetDTC(self,e):
-        self.nb.setCurrentWidget(self.DTCPanel)
-        self.ThreadControl=2
+    def onTestDTC(self):
+        self.DTCClearEvent.emit(0) #clear list
+        self.DTCEvent.emit(['DTCs from Fake ECU'])
+        self.DTCEvent.emit(['P0001', 'Active', 'Test DTC'])
+        
+    def GetDTC(self):
+        self.DTCClearEvent.emit(0) #clear list
+        DTCCodes=self.senprod.port.get_dtc()
+
+        if DTCCodes is None: #Communication Issue
+            self.OnDisconnect()
+
+        for ecu in DTCCodes:
+            self.DTCEvent.emit(['DTCs from ECU%d' % self.senprod.port.getEcuNum(ecu)])
+            if len(DTCCodes[ecu]) == 0:
+                self.DTCEvent.emit(["No DTC codes (codes cleared)"])
+            for code in DTCCodes[ecu]:
+                self.DTCEvent.emit([code[1],code[0],pcodes[code[1]]])   
+
+        self.nb.setCurrentWidget(self.DTCpanel.parentWidget())
         
     def AddDTC(self, code):
         self.dtc.addTableRow(2, code)
 
-
-    def CodeLookup(self,e = None):
+    def CodeLookup(self):
         id = 0
         diag = QDialog(self.frame)
         diag.setWindowTitle('Diagnostic Trouble Codes')
@@ -535,7 +554,7 @@ See the GNU General Public License for more details.</p>
         diag.show()
 
         
-    def QueryClear(self,e):
+    def QueryClear(self):
         id = 0
         diag = QMessageBox(QMessageBox.Question, 'Clear DTC?', \
                                      'Are you sure you wish to clear all DTC codes and freeze frame data?',\
@@ -546,8 +565,9 @@ See the GNU General Public License for more details.</p>
             self.ClearDTC()
 
     def ClearDTC(self):
-        self.ThreadControl=1
-        self.nb.setCurrentWidget(self.DTCPanel.parentWidget())
+        self.senprod.port.clear_dtc()
+        self.DTCClearEvent.emit(0) #clear list
+        self.nb.setCurrentWidget(self.DTCpanel.parentWidget())
         
     
     def scanSerial(self):
@@ -557,7 +577,7 @@ See the GNU General Public License for more details.</p>
             available.append(portItem.device)
         return available
 
-    def Configure(self,e = None):
+    def Configure(self):
         id = 0
         diag = QDialog(self.frame)
         diag.setWindowTitle("Configure")
@@ -646,7 +666,9 @@ See the GNU General Public License for more details.</p>
             #write configuration to cfg file
             self.config.write(open(self.configfilepath, 'w'))
 
-    def OnExit(self,e = None):
+    def OnExit(self):
+        if self.senprod is not None:
+            self.senprod.stop()
         import sys
         sys.exit(0)
 

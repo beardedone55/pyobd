@@ -35,7 +35,9 @@ from obd_sensors import hex_to_int
 
 GET_DTC_COMMAND   = "03"
 CLEAR_DTC_COMMAND = "04"
-GET_FREEZE_DTC_COMMAND = "07"
+GET_PENDING_DTC_COMMAND = "07"
+GET_DTC_RESPONSE = "43"
+GET_PENDING_DTC_RESPONSE = "47"
 
 from debugEvent import *
 
@@ -87,6 +89,8 @@ class OBDPort:
          self._notify_window=_notify_window
          self._notify_window.DebugEvent.emit(1,'Opening interface (serial port)')
          self.port = None
+         self.protocol = None
+         self.prot_is_CAN = False
 
          try:
              self.port = serial.Serial(portnum,baud, parity = par, stopbits = sb, \
@@ -130,23 +134,72 @@ class OBDPort:
 
              self._notify_window.DebugEvent.emit(2,"ate0 response: " + res[-1])
 
+             self.send_command('atdp') #Send Display Protocol Command
+             res = self.get_result()
+             if res == None:
+                 count = ConnectionError(count, res[0])
+                 continue
+
+             self.protocol = res[0]
+             self.prot_is_CAN = self.protocol.upper().find('CAN') != -1
+
+             self.send_command('ath1') #Turn on headers
+             self.get_result()
+
+
+             #Ping all ECUs in Vehicle
              self.send_command("0100")
              res = self.get_result()
              if res == None:
                 count = ConnectionError(count)
                 continue
 
+             self.ecu_addresses = []
+             #For CAN expecting something like this for each ECU:
+             #   7E8 06 41 00
+             #    ^  ^   ^  ^
+             #    |  |   |  --- PID
+             #    |  |    ------Response Code Service 1
+             #    |  -----------PCI Byte
+             #    --------------ECU Response Address
+             #    
+             #For others, expecting something like this:
+             #   41 6B E0 41 00
+             #         ^  ^  ^
+             #         |  |  --- PID
+             #         |  -------Response Code Service 1
+             #         ----------ECU Address
+
              for ready in res:
                 self._notify_window.DebugEvent.emit(2,"0100 response1: " + ready)
-                if ready[0:5]=="41 00":
-                    return None
-             #ready=ready[-5:] #Expecting error message: BUSINIT:.ERROR (parse last 5 chars)
+                ready = ready.split(' ')
+                if not self.prot_is_CAN:
+                    ecu = ready[2]
+                    ready = ready[3:]   #Remove header bytes
+                else:
+                    ecu = ready[0]
+                    ready = ready[2:]   #Remove CAN header and PCI byte
+
+                if ready[0:2] == ['41', '00']:    #Expected Response code from any ECU
+                    self.ecu_addresses.append(ready[0])
+
+             self.ecu_addresses = sorted(self.ecu_addresses)
+
+             if len(self.ecu_addresses) > 0:
+                return None
+
              count = ConnectionError(count, res[-1])
 
          self.close()
          self.State = 0
          return None
               
+     def getEcuNum(self, ecuAddress):
+         if ecuAddress in self.ecu_addresses:
+            return self.ecu_addresses.index(ecuAddress)
+         else:
+            return 0
+
      def close(self):
          """ Resets device and closes all associated filehandles"""
          
@@ -160,52 +213,81 @@ class OBDPort:
      def send_command(self, cmd):
          """Internal use only: not a public interface"""
          if self.port:
-             self.port.flushOutput()
-             self.port.flushInput()
-             cmd += '\r\n'
-             self.port.write(cmd.encode('ascii', 'ignore'))
-             self.port.flush()
-             self._notify_window.DebugEvent.emit(3,"Send command: " + cmd)
+             try:
+                 self.port.flushOutput()
+                 self.port.flushInput()
+                 cmd += '\r\n'
+                 self.port.write(cmd.encode('ascii', 'ignore'))
+                 self.port.flush()
+                 self._notify_window.DebugEvent.emit(3,"Send command: " + cmd)
+             except:
+                 self._notify_window.DebugEvent.emit(3,"Error Sending command: " + cmd)
+             
 
-     def interpret_result(self,code):
+     def interpret_result(self,data,ecu):
          """Internal use only: not a public interface"""
          # Code will be the string returned from the device.
          # It should look something like this:
          # '41 11 0 0\r\r'
          
          # get the first thing returned, echo should be off
-         if code != None:
-             code = code[0]
+         if data is None:
+             return "NODATA"
+
+         retVal = {}
 
          # 9 seems to be the length of the shortest valid response
-         if len(code) < 7:
-             raise "BogusCode"
+         for code in data:
+             if len(code) < 7:
+                 raise "BogusCode"
          
-         #code = string.split(code, "\r")
-         
-         #remove whitespace
-         code = string.split(code)
-         code = string.join(code, "")
-         
-         #cables can behave differently 
-         if code[:6] == "NODATA": # there is no such sensor
+             #cables can behave differently 
+             if code[:6] == "NODATA": # there is no such sensor
+                 return "NODATA"
+
+             code = code.split(' ')
+
+             if not self.prot_is_CAN:
+                 code = code[2:]
+
+             returned_ecu = code[0]
+             if self.prot_is_CAN:
+                 code = code[2:] #Remove ECU and PCI Byte
+             else:
+                 code = code[1:] #Remove ECU
+
+             #Squash data together
+             code = ''.join(code)
+             # first 4 characters are code from ELM
+             code = code[4:]
+             retVal[returned_ecu] = code
+
+         if ecu is None:
+             if len(retVal) == 0:
+                return 'NODATA'
+             else:
+                return retVal
+
+         if ecu in retVal:
+             return retVal[ecu]
+         else:
              return "NODATA"
-             
-         # first 4 characters are code from ELM
-         code = code[4:]
-         return code
      
      #get_result reads input from serial port and 
      #returns array of lines returned with 
      def get_result(self):
          """Internal use only: not a public interface"""
-         #time.sleep(0.1)
          if self.port:
              buffer = ""
              result = []
 
              while True: 
-                 c = self.port.read(1).decode('utf8', 'ignore')
+                 try:
+                    c = self.port.read(1).decode('utf8', 'ignore')
+                 except Exception as e:
+                    self._notify_window.DebugEvent.emit(3,"Get Result Failed: " + e)
+                    break 
+                    
                  if len(c) == 0 or c == '>': #Loop until SOI or buffer is empty
                      break
                  if c != '\r' and c != '\n': #Ignore line feeds
@@ -225,27 +307,81 @@ class OBDPort:
             self._notify_window.DebugEvent.emit(3,"NO self.port!" + buffer)
          return None
 
+     def get_obd_data_bytes(self):
+         """Internal use only: not a public interface"""
+         retVal = {}
+         byteCount = {}
+         data = self.get_result()
+         if data is None:
+             return None
+
+         for line in data:
+             line = line.split(' ') #Turn data into list of bytes 
+             if not self.prot_is_CAN:
+                 line = line[2:]
+             ecu = line[0]
+             if ecu not in retVal:
+                 retVal[ecu] = []
+             if self.prot_is_CAN:
+                 if line[1][0] == '0':  #PCI Byte indicates single line response
+                      byteCount[ecu] = int(line[1][1]) #Second half of PCI byte is data length
+                      line = line[2:]  #Remove ecu address and byte count
+                      retVal[ecu] += line[0:byteCount[ecu]] #Get the data
+
+                 if line[1][0] == '1':   #PCI Byte indicates 1st frame of multiframe response
+                      byteCount[ecu] = hex_to_int(line[1][1]) << 8 + hex_to_int(line[2]) #PCI Byte extended 1 byte for byte count
+                      retVal[ecu] += ['00'] * (byteCount[ecu]-len(retVal[ecu])) #Fill out data with zeroes                      
+                      retVal[ecu] = retVal[ecu][0:byteCount[ecu]]               #Truncate list to byte count
+                      line = line[3:]                                           #Remove ECU Address and Byte Count
+                      i = 0
+                      for data in line:
+                           retVal[ecu][i] = data
+                           i += 1
+                 if line[1][0] == '2':            #PCI Byte indicates Next frame of multiframe response
+                      i = hex_to_int(line[1][1])  #Indicates frame # of multiframe response
+                      i = i*7 - 1
+                      line = line[2:]
+                      if ecu not in byteCount:
+                          retVal[ecu] += ['00'] * (i+7 - len(retVal[ecu])) #Next Frame came before 1st frame.
+                                                                          #Fill through this frame with zeroes. 
+                      for data in line:
+                          if i < len(retVal[ecu]):
+                              retVal[ecu][i] = data
+                          else:
+                              break
+                          i += 1
+                          
+             else:
+                 retVal[ecu] += line[1:]
+
+         return retVal
+
      # get sensor value from command
-     def get_sensor_value(self,sensor):
+     def get_sensor_value(self,sensor,ecu):
          """Internal use only: not a public interface"""
          cmd = sensor.cmd
          self.send_command(cmd)
          data = self.get_result()
          
          if data != None:
-             data = self.interpret_result(data)
+             data = self.interpret_result(data,ecu)
              if data != "NODATA":
-                 data = sensor.value(data)
+                 if ecu is None:
+                     for key in data:
+                         data[key] = sensor.value(data[key])
+                 else:
+                     data = sensor.value(data)
+                      
          else:
              return "NORESPONSE"
          return data
 
      # return string of sensor name and value from sensor index
-     def sensor(self , sensor_index):
+     def sensor(self , sensor_index, ecu = None):
          """Returns 3-tuple of given sensors. 3-tuple consists of
          (Sensor Name (string), Sensor Value (string), Sensor Unit (string) ) """
          sensor = obd_sensors.SENSORS[sensor_index]
-         r = self.get_sensor_value(sensor)
+         r = self.get_sensor_value(sensor, ecu)
          return (sensor.name,r, sensor.unit)
 
      def sensor_names(self):
@@ -273,65 +409,81 @@ class OBDPort:
          
          return statusTrans
           
-     #
-     # fixme: j1979 specifies that the program should poll until the number
-     # of returned DTCs matches the number indicated by a call to PID 01
-     #
      def get_dtc(self):
           """Returns a list of all pending DTC codes. Each element consists of
           a 2-tuple: (DTC code (string), Code description (string) )"""
-          dtcLetters = ["P", "C", "B", "U"]
+          #Separate Data received into codes for each ECU.
+          def parse_get_dtc_data(res, DTCCodes, DTCType, dtcNumber=None):
+            dtcLetters = ["P", "C", "B", "U"]
+            for ecu in res:
+                i=0
+                dataList = res[ecu]
+                if ecu not in DTCCodes:
+                    DTCCodes[ecu] = []
+
+                while i < len(dataList):
+                    #check Mode Response byte (Should be GET_DTC_RESPONSE(0x43))
+                    if (self.prot_is_CAN and i == 0) or (not self.prot_is_CAN and (i % 7) == 0):
+                        if dataList[i] != GET_DTC_RESPONSE and dataList[i] != GET_PENDING_DTC_RESPONSE:
+                            self._notify_window.DebugEvent.emit(1,'Unexpected Response to GET_DTC (%s)' % (dataList[i]))
+                            break
+                        i += 1
+                    
+                    #For CAN, 1st byte is Number of DTCs        
+                    if self.prot_is_CAN and i == 1:
+                        NumCodes = hex_to_int(dataList[i])
+                        i += 1
+                        if dtcNumber is not None and (NumCodes != dtcNumber[ecu]):
+                            self._notify_window.DebugEvent.emit(1,'Expected Codes (%d) != Received Codes (%d)' % (dtcNumber[ecu], NumCodes))
+
+                    if i >= len(dataList):
+                        break
+
+                    val1 = hex_to_int(dataList[i])
+                    val2 = hex_to_int(dataList[i+1]) #get DTC codes from response (3 DTC each 2 bytes)
+                    val  = (val1<<8)+val2 #DTC val as int
+
+                    i += 2
+                    
+                    if val==0: #skip fill of last packet
+                      continue
+                       
+                    DTCStr=dtcLetters[(val&0xC000)>>14]+str((val&0x3000)>>12)+str(val&0x0fff) 
+                    DTCCodes[ecu].append([DTCType, DTCStr])
+         
+            return DTCCodes 
+
+          DTCCodes = {}
           r = self.sensor(1)[1] #data
-          dtcNumber = r[0]
-          mil = r[1]
-          DTCCodes = []
-          
-          
-          print ("Number of stored DTC:" + str(dtcNumber) + " MIL: " + str(mil))
-          # get all DTC, 3 per mesg response
-          for i in range(0, ((dtcNumber+2)/3)):
-            self.send_command(GET_DTC_COMMAND)
-            res = self.get_result()
-            if res == None:
-                continue
+          dtcNumber = {}
+          mil = {}
+          if r != 'NODATA' and r != 'NORESPONSE':
+              #Each ECU may return different number of DTCs
+              for ecu in r: 
+                dtcNumber[ecu] = r[ecu][0]
+                mil[ecu] = r[ecu][1]
+                self._notify_window.DebugEvent.emit(1,'Number of stored DTC: %d' % dtcNumber[ecu])
 
-            res = res[0]
-            print ("DTC result:" + res)
-            for i in range(0, 3):
-                val1 = hex_to_int(res[3+i*6:5+i*6])
-                val2 = hex_to_int(res[6+i*6:8+i*6]) #get DTC codes from response (3 DTC each 2 bytes)
-                val  = (val1<<8)+val2 #DTC val as int
-                
-                if val==0: #skip fill of last packet
-                  break
-                   
-                DTCStr=dtcLetters[(val&0xC000)>14]+str((val&0x3000)>>12)+str(val&0x0fff) 
-                
-                DTCCodes.append(["Active",DTCStr])
-          
+              # Get Active DTCs
+              self.send_command(GET_DTC_COMMAND)
+              res = self.get_obd_data_bytes()
+
+              if res is None:
+                return None #Connection Lost
+
+              DTCCodes = parse_get_dtc_data(res, DTCCodes, 'Active', dtcNumber)
+          else:
+              return None #Connection Lost
+
           #read mode 7
-          self.send_command(GET_FREEZE_DTC_COMMAND)
-          res = self.get_result()
+          self.send_command(GET_PENDING_DTC_COMMAND)
+          res = self.get_obd_data_bytes()
           
-          if res == None or res[0][:7] == "NO DATA": #no freeze frame
-            return DTCCodes
-          
-          res = res[0]
-
-          print ("DTC freeze result: " + res)
-          for i in range(0, 3):
-              val1 = hex_to_int(res[3+i*6:5+i*6])
-              val2 = hex_to_int(res[6+i*6:8+i*6]) #get DTC codes from response (3 DTC each 2 bytes)
-              val  = (val1<<8)+val2 #DTC val as int
-                
-              if val==0: #skip fill of last packet
-                break
-                   
-              DTCStr=dtcLetters[(val&0xC000)>14]+str((val&0x3000)>>12)+str(val&0x0fff)
-              DTCCodes.append(["Passive",DTCStr])
-              
+          if res != None: #Pending Trouble Codes Returned
+            DTCCodes = parse_get_dtc_data(res, DTCCodes, 'Passive')
+            
           return DTCCodes
-              
+          
      def clear_dtc(self):
          """Clears all DTCs and freeze frame data"""
          self.send_command(CLEAR_DTC_COMMAND)     
