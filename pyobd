@@ -138,20 +138,23 @@ class MyApp(QApplication):
                 return None
                 
             self.active   = []
-            self.supp     = self.port.sensor(0)[1] #read supported PIDS
             
-            self.active.append(1); #PID 0 is always supported
+            self.active.append(0); #PID 0 is always supported
             
-            self._notify_window.ResultEvent.emit([0,0,"X"])
+            self._notify_window.ResultEvent.emit([0,0,""])
             self._notify_window.DebugEvent.emit(1,"Communication initialized...")
             
-            for i in range(1, len(self.supp)):
-                if self.supp[i-1] == "1": #put X in coloum if PID is supported
-                    self.active.append(1)
-                    self._notify_window.ResultEvent.emit([i,0,"X"])
-                else:
+            if len(self.port.ecu_addresses) > 0:
+                ecu = self.port.ecu_addresses[0]
+                supp = self.port.get_supported(ecu) #read supported mode $01 
+                                                    #PIDS of 1st ECU that responds
+                for i in range(1, len(supp)):
                     self.active.append(0)
-                    self._notify_window.ResultEvent.emit([i,0,""])
+                    if supp[i-1] == "1": #Unhide Row if supported
+                        self._notify_window.ResultEvent.emit([i,0,""])
+                        self._notify_window.sensors.setRowHidden(i,False)
+                    else:
+                        self._notify_window.sensors.setRowHidden(i,True)
             return "OK"
         
         def run(self):
@@ -168,7 +171,13 @@ class MyApp(QApplication):
             self._notify_window.StatusEvent.emit([1,1,self.port.protocol])
             prevstate=-1
             curstate=-1
-            while self._notify_window.ThreadControl!=666:
+
+            if len(self.port.ecu_addresses) > 0:
+                ecu = self.port.ecu_addresses[0]
+            else:
+                ecu = None
+
+            while self._notify_window.ThreadControl!=666 and ecu is not None:
                 prevstate=curstate
                 curstate=self._nb.currentIndex()
                 if curstate==1: #show tests tab
@@ -176,10 +185,11 @@ class MyApp(QApplication):
                   for i in range(0,len(res)):
                     self._notify_window.TestEvent.emit([i,1,res[i]])
                 
-                elif curstate==2: #show sensor tab
+                elif curstate==2 and ecu is not None: #show sensor tab
                   for i in range(3, len(self.active)):
                       if self.active[i]:
-                          s = self.port.sensor(i)
+                          s = self.port.sensor(i,ecu)
+
                           self._notify_window.ResultEvent.emit([i,2,"%s (%s)" % (s[1], s[2])])
                       if self._notify_window.ThreadControl==666:
                           break
@@ -229,11 +239,12 @@ class MyApp(QApplication):
                 return
 
             if   state == 0:
-                self.senprod.on(sel)
-                self.sensors.item(sel,1).setText("1")
+                self.sensors.item(row,0).setText("X")
+                self.senprod.on(row)
             elif state == 1:
-                self.senprod.off(sel)
-                self.sensors.item(sel,1).setText("0")
+                self.senprod.off(row)
+                self.sensors.item(row,0).setText("")
+                self.sensors.item(row,2).setText('-------')
             else:
                 debug("Incorrect sensor state")
         
@@ -251,15 +262,16 @@ class MyApp(QApplication):
     def build_sensor_page(self):
         self.sensors = self.MyListCtrl()
         self.sensors.setColumnCount(3)
-        self.sensors.setHorizontalHeaderLabels(['Supported','Sensor','Value'])
+        self.sensors.setHorizontalHeaderLabels(['Active','Sensor','Value'])
         self.sensors.setColumnWidth(0,70)
         self.sensors.setColumnWidth(1,250)
-        self.sensors.horizontalHeaderItem(1).setTextAlignment(Qt.AlignRight)
 
         for i in range(0, len(obd_io.obd_sensors.SENSORS)):
             s = obd_io.obd_sensors.SENSORS[i].name
             self.sensors.addTableRow(3, ['', s, ''])
-            self.sensors.item(i,1).setTextAlignment(Qt.AlignRight)
+            self.sensors.item(i,1).setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
+            self.sensors.item(i,0).setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+            self.sensors.setRowHidden(i, True)
         
         sensorPage = self.MyPanel(self.sensors)
         self.nb.addTab(sensorPage, "Sensors")
@@ -393,6 +405,7 @@ class MyApp(QApplication):
 
         self.exitAction = CreateMenuItem("E&xit"," Terminate the program", self.OnExit)
         self.filemenu.addAction(self.exitAction)
+        self.aboutToQuit.connect(self.exitCleanup)
 
         self.configAction = CreateMenuItem("Configure"," Configure pyOBD",self.Configure)
         self.connectAction = CreateMenuItem("Connect"," Reopen and connect to device",self.OpenPort)
@@ -431,9 +444,10 @@ class MyApp(QApplication):
         webbrowser.open("http://www.obdtester.com/order")
     
     def OnHelpAbout(self): #todo about box
-        Text = """<p>PyOBD is an automotive OBD2 diagnostic application that works with ELM237 cables.</p>
+        Text = """<p>PyOBD is an automotive OBD2 diagnostic application that works with ELM23x cables.</p>
 
-<p>(C) 2008-2009 SeCons Ltd.<br>
+<p>(C) 2018-2019 Brian LePage<br>
+(C) 2008-2009 SeCons Ltd.<br>
 (C) 2004 Charles Donour Sizemore</p>
 
 <p><a href='http://www.obdtester.com/'>http://www.obdtester.com/</a><br>
@@ -454,7 +468,7 @@ See the GNU General Public License for more details.</p>
         HelpAboutDlg.exec()
 
     def OnResult(self,event):
-        self.sensors.addTableRow(3, event)
+        self.sensors.item(event[0], event[1]).setText(event[2])
     
     def OnStatus(self,event):
         if event[0] == 666: #signal, that connection falied
@@ -488,7 +502,6 @@ See the GNU General Public License for more details.</p>
         self.sensor_control_off()
         
     def OpenPort(self):
-        
         if self.senprod: # signal current producers to finish
             self.senprod.stop()
         self.ThreadControl = 0    
@@ -518,9 +531,6 @@ See the GNU General Public License for more details.</p>
 
         self.nb.setCurrentWidget(self.DTCpanel.parentWidget())
         
-    def AddDTC(self, code):
-        self.dtc.addTableRow(2, code)
-
     def CodeLookup(self):
         id = 0
         diag = QDialog(self.frame)
@@ -666,11 +676,11 @@ See the GNU General Public License for more details.</p>
             #write configuration to cfg file
             self.config.write(open(self.configfilepath, 'w'))
 
+    def exitCleanup(self):
+        self.ThreadControl=666
+
     def OnExit(self):
-        if self.senprod is not None:
-            self.senprod.stop()
-        import sys
-        sys.exit(0)
+        self.quit()
 
 app = MyApp(sys.argv)
 sys.exit(app.exec_())

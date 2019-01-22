@@ -91,6 +91,7 @@ class OBDPort:
          self.port = None
          self.protocol = None
          self.prot_is_CAN = False
+         self.ecu_addresses = []
 
          try:
              self.port = serial.Serial(portnum,baud, parity = par, stopbits = sb, \
@@ -154,7 +155,6 @@ class OBDPort:
                 count = ConnectionError(count)
                 continue
 
-             self.ecu_addresses = []
              #For CAN expecting something like this for each ECU:
              #   7E8 06 41 00
              #    ^  ^   ^  ^
@@ -181,7 +181,7 @@ class OBDPort:
                     ready = ready[2:]   #Remove CAN header and PCI byte
 
                 if ready[0:2] == ['41', '00']:    #Expected Response code from any ECU
-                    self.ecu_addresses.append(ready[0])
+                    self.ecu_addresses.append(ecu)
 
              self.ecu_addresses = sorted(self.ecu_addresses)
 
@@ -285,7 +285,7 @@ class OBDPort:
                  try:
                     c = self.port.read(1).decode('utf8', 'ignore')
                  except Exception as e:
-                    self._notify_window.DebugEvent.emit(3,"Get Result Failed: " + e)
+                    self._notify_window.DebugEvent.emit(3,"Get Result Failed: " + str(e))
                     break 
                     
                  if len(c) == 0 or c == '>': #Loop until SOI or buffer is empty
@@ -328,16 +328,16 @@ class OBDPort:
                       line = line[2:]  #Remove ecu address and byte count
                       retVal[ecu] += line[0:byteCount[ecu]] #Get the data
 
-                 if line[1][0] == '1':   #PCI Byte indicates 1st frame of multiframe response
-                      byteCount[ecu] = hex_to_int(line[1][1]) << 8 + hex_to_int(line[2]) #PCI Byte extended 1 byte for byte count
+                 elif line[1][0] == '1':   #PCI Byte indicates 1st frame of multiframe response
+                      byteCount[ecu] = hex_to_int(line[1][1] + line[2]) #PCI Byte extended 1 byte for byte count
                       retVal[ecu] += ['00'] * (byteCount[ecu]-len(retVal[ecu])) #Fill out data with zeroes                      
                       retVal[ecu] = retVal[ecu][0:byteCount[ecu]]               #Truncate list to byte count
                       line = line[3:]                                           #Remove ECU Address and Byte Count
                       i = 0
-                      for data in line:
-                           retVal[ecu][i] = data
+                      for byte in line:
+                           retVal[ecu][i] = byte
                            i += 1
-                 if line[1][0] == '2':            #PCI Byte indicates Next frame of multiframe response
+                 elif line[1][0] == '2':            #PCI Byte indicates Next frame of multiframe response
                       i = hex_to_int(line[1][1])  #Indicates frame # of multiframe response
                       i = i*7 - 1
                       line = line[2:]
@@ -359,8 +359,6 @@ class OBDPort:
      # get sensor value from command
      def get_sensor_value(self,sensor,ecu):
          """Internal use only: not a public interface"""
-         cmd = sensor.cmd
-         self.send_command(cmd)
          data = self.get_result()
          
          if data != None:
@@ -377,12 +375,63 @@ class OBDPort:
          return data
 
      # return string of sensor name and value from sensor index
-     def sensor(self , sensor_index, ecu = None):
+     def sensor(self , sensor_index, ecu = None, mode = None, sensors = obd_sensors.SENSORS):
          """Returns 3-tuple of given sensors. 3-tuple consists of
          (Sensor Name (string), Sensor Value (string), Sensor Unit (string) ) """
-         sensor = obd_sensors.SENSORS[sensor_index]
+         sensor = sensors[sensor_index]
+         cmd = sensor.cmd
+         if mode is not None:
+            cmd = mode + cmd[2:]
+
+         self.send_command(cmd)
          r = self.get_sensor_value(sensor, ecu)
          return (sensor.name,r, sensor.unit)
+
+     def get_sensors(self, sensor_index_list, ecu = None, mode = '01', sensors = obd_sensors.SENSORS):
+         retVal = {}
+         sil = list(sensor_index_list)
+         if self.prot_is_CAN and ecu is not None:
+            while len(sil) > 0:
+                cmd = mode
+                cmd_dict = {}
+                for i in sil[:6]:  #Read up to 6 at a time!
+                    pid = sensors[i].cmd[2:]
+                    cmd_dict[pid] = i
+                    cmd += pid
+                self.send_command(cmd)
+                res = self.get_obd_data_bytes()
+                if res is not None and ecu in res:
+                    res = res[ecu]
+                    if res[0] == '4' + mode[1]:
+                        res = res[1:]
+                        while len(res) > 0:
+                            pid = res[0] #PID
+                            data = res[1:5] #A to D
+                            data = ''.join(data)
+                            i = cmd_dict[pid]
+                            sensor = sensors[i]
+                            data = sensor.value(data)
+                            retVal[i] = (sensor.name, data, sensor.unit)
+                            res = res[5:] #goto next result
+
+                sil = sil[6:] #Remove last 6
+
+         else:
+            for i in sensor_index_list:
+                retVal[i] = sensor(self, i, ecu, mode, sensors)
+
+         return retVal 
+
+     def get_supported(self, ecu, mode = '01', sensors = obd_sensors.SENSORS):
+         data = self.get_sensors(obd_sensors.SUPPORTED_PIDS, ecu, mode, sensors)
+         retVal = ''
+         for i in obd_sensors.SUPPORTED_PIDS:
+            if i in data:
+                retVal += data[i][1]
+            else:
+                retVal += '0' * 32 #Assume not supported (32 zeroes) 
+
+         return retVal
 
      def sensor_names(self):
          """Internal use only: not a public interface"""
