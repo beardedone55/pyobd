@@ -1,4 +1,5 @@
- #!/usr/bin/env python
+#!/usr/bin/env python
+# vim: shiftwidth=4:tabstop=4:expandtab
 ###########################################################################
 # obd_sensors.py
 #
@@ -47,8 +48,8 @@ def fuel_pres_10(code): # in 10kPa
     return '%4.3f' % (code * 1.4504)
 
 def rel_fuel_pres(code): #in 0.079 kPa
-	 code = hex_to_int(code[:4])
-	 return '%4.3f' % (code * 0.14504 * 0.079)
+    code = hex_to_int(code[:4])
+    return '%4.3f' % (code * 0.14504 * 0.079)
 
 def rpm(code):
     code = hex_to_int(code[:4])
@@ -71,9 +72,9 @@ def timing_advance(code):
     return '%3.1f' % (code - 128) / 2.0
 
 def injection_timing(code):
-	 code = hex_to_int(code[:4])
-	 code = (code - 38665) / 128.0
-	 return '%3.3f' % (code)
+    code = hex_to_int(code[:4])
+    code = (code - 38665) / 128.0
+    return '%3.3f' % (code)
 
 def sec_to_min(code):
     code = hex_to_int(code[:4])
