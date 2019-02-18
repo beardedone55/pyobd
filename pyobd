@@ -78,7 +78,7 @@ class MyApp(QApplication):
     # removed style for now
     class MyListCtrl(QTableWidget):
         def __init__(self):
-            QTableWidget.__init__(self)
+            super().__init__()
             self.horizontalHeader().setStretchLastSection(True)
             self.verticalHeader().hide()
             self.setSelectionBehavior(QAbstractItemView.SelectRows)
@@ -161,10 +161,10 @@ class MyApp(QApplication):
             self._notify_window.StatusEvent.emit([0,1,"Connecting...."])
             self.initCommunication()
             if self.port.State==0: #cant connect, exit thread
-              self.stop()
-              self._notify_window.StatusEvent.emit([666]) #signal apl, that communication was disconnected
-              self._notify_window.StatusEvent.emit([0,1,"Error. Cannot connect..."])
-              return None
+                self.stop()
+                self._notify_window.StatusEvent.emit([666]) #signal apl, that communication was disconnected
+                self._notify_window.StatusEvent.emit([0,1,"Error. Cannot connect..."])
+                return None
               
             self._notify_window.StatusEvent.emit([0,1,"Connected"])
             self._notify_window.StatusEvent.emit([2,1,self.port.ELMver])
@@ -181,20 +181,20 @@ class MyApp(QApplication):
                 prevstate=curstate
                 curstate=self._nb.currentIndex()
                 if curstate==1: #show tests tab
-                  res=self.port.get_tests_MIL()                
-                  for i in range(0,len(res)):
-                    self._notify_window.TestEvent.emit([i,1,res[i]])
+                    res=self.port.get_tests_MIL()
+                    for i in range(0,len(res)):
+                        self._notify_window.TestEvent.emit([i,1,res[i]])
                 
                 elif curstate==2 and ecu is not None: #show sensor tab
-                  for i in range(3, len(self.active)):
-                      if self.active[i]:
-                          s = self.port.sensor(i,ecu)
+                    for i in range(3, len(self.active)):
+                        if self.active[i]:
+                            s = self.port.sensor(i,ecu)
 
-                          self._notify_window.ResultEvent.emit([i,2,"%s (%s)" % (s[1], s[2])])
-                      if self._notify_window.ThreadControl==666:
-                          break
+                            self._notify_window.ResultEvent.emit([i,2,"%s (%s)" % (s[1], s[2])])
+                        if self._notify_window.ThreadControl==666:
+                            break
                 else:
-                 pass 
+                    pass 
             self.stop()
 
         def off(self, id):
@@ -217,7 +217,7 @@ class MyApp(QApplication):
                 
         def stop(self):
             if self.port != None: #if stop is called before any connection port is not defined (and not connected )
-              self.port.close()
+                self.port.close()
             self._notify_window.StatusEvent.emit([0,1,"Disconnected"])
             self._notify_window.StatusEvent.emit([2,1,"----"])
   
@@ -325,19 +325,19 @@ class MyApp(QApplication):
         #print platform.mac_ver()[]        
         
         if "OS" in os.environ.keys(): #runnig under windows
-          self.configfilepath="pyobd.ini"
+            self.configfilepath="pyobd.ini"
         else:
-          self.configfilepath=os.environ['HOME']+'/.pyobdrc'
+            self.configfilepath=os.environ['HOME']+'/.pyobdrc'
         if self.config.read(self.configfilepath)==[]:
-          self.COMPORT="/dev/ttyACM0"
-          self.RECONNATTEMPTS=5
-          self.SERTIMEOUT=5
-          self.BAUDRATE=9600
+            self.COMPORT="/dev/ttyACM0"
+            self.RECONNATTEMPTS=5
+            self.SERTIMEOUT=5
+            self.BAUDRATE=9600
         else:
-          self.COMPORT=self.config.get("pyOBD","COMPORT")
-          self.BAUDRATE=self.config.get("pyOBD","BAUDRATE")
-          self.RECONNATTEMPTS=self.config.getint("pyOBD","RECONNATTEMPTS")
-          self.SERTIMEOUT=self.config.getint("pyOBD","SERTIMEOUT")
+            self.COMPORT=self.config.get("pyOBD","COMPORT")
+            self.BAUDRATE=self.config.get("pyOBD","BAUDRATE")
+            self.RECONNATTEMPTS=self.config.getint("pyOBD","RECONNATTEMPTS")
+            self.SERTIMEOUT=self.config.getint("pyOBD","SERTIMEOUT")
         
         frame = QMainWindow()
         frame.setWindowTitle('pyOBD-II')
@@ -507,7 +507,7 @@ See the GNU General Public License for more details.</p>
         self.ThreadControl = 0    
         self.senprod = self.sensorProducer(self,self.COMPORT,self.BAUDRATE, self.SERTIMEOUT,self.RECONNATTEMPTS,self.nb)
         self.senprod.start() 
-        
+            
         self.sensor_control_on()
         
     def onTestDTC(self):
@@ -567,8 +567,8 @@ See the GNU General Public License for more details.</p>
     def QueryClear(self):
         id = 0
         diag = QMessageBox(QMessageBox.Question, 'Clear DTC?', \
-                                     'Are you sure you wish to clear all DTC codes and freeze frame data?',\
-                                     QMessageBox.Yes | QMessageBox.No, self.frame)
+            'Are you sure you wish to clear all DTC codes and freeze frame data?',\
+            QMessageBox.Yes | QMessageBox.No, self.frame)
 
         r  = diag.exec()
         if r == QMessageBox.Yes:
@@ -592,7 +592,7 @@ See the GNU General Public License for more details.</p>
         diag = QDialog(self.frame)
         diag.setWindowTitle("Configure")
         sizer = QFormLayout()
-        
+            
         ports = self.scanSerial()
         comportDropdown = QComboBox()
         comportDropdown.addItems(ports)
@@ -607,16 +607,16 @@ See the GNU General Public License for more details.</p>
         #timeOut input control                
         timeoutCtrl = self.MyNumberInput(str(self.SERTIMEOUT))
         sizer.addRow('Timeout:', timeoutCtrl)
-        
+            
         #reconnect attempt input control                
         reconnectCtrl = self.MyNumberInput(str(self.RECONNATTEMPTS))
         sizer.addRow('Reconnect attempts:', reconnectCtrl)
-               
+                   
         #set actual serial port choice
         if (self.COMPORT != 0) and (self.COMPORT in ports):
-          comportDropdown.setCurrentIndex(ports.index(self.COMPORT))
+            comportDropdown.setCurrentIndex(ports.index(self.COMPORT))
         else:
-          comportDropdown.setCurrentIndex(0)
+            comportDropdown.setCurrentIndex(0)
 
         if comportDropdown.currentIndex() >= 0:
             for rate in serial.Serial(ports[comportDropdown.currentIndex()]).BAUDRATES:
@@ -629,7 +629,7 @@ See the GNU General Public License for more details.</p>
                 baudrateDropdown.setCurrentIndex(baudrates.index(self.BAUDRATE))
             else:
                 baudrateDropdown.setCurrentIndex(baudrates.index('38400'))
-        
+            
         okButton = QPushButton('OK')
         cancelButton = QPushButton('Cancel')
         buttonLayout = QHBoxLayout()
@@ -643,17 +643,17 @@ See the GNU General Public License for more details.</p>
         r  = diag.exec()
 
         if r == QDialog.Accepted and comportDropdown.currentIndex() >=0 and baudrateDropdown.currentIndex() >=0:
-            
+                
             #create section
             if self.config.sections()==[]:
-              self.config.add_section("pyOBD")
+                self.config.add_section("pyOBD")
             #set and save COMPORT
             self.COMPORT = ports[comportDropdown.currentIndex()]
             self.config.set("pyOBD","COMPORT",self.COMPORT)
 
             self.BAUDRATE = baudrates[baudrateDropdown.currentIndex()]
             self.config.set("pyOBD","BAUDRATE",self.BAUDRATE)			
-             
+                 
             #set and save SERTIMEOUT
             #If user enters a blank, it will remain unchanged
             try:
@@ -663,7 +663,7 @@ See the GNU General Public License for more details.</p>
 
             self.config.set("pyOBD","SERTIMEOUT",self.SERTIMEOUT)
             self.status.item(3,1).setText(self.COMPORT); 
-            
+                
             #set and save RECONNATTEMPTS
             #If user enters a blank, it will remain unchanged
             try:
@@ -672,7 +672,7 @@ See the GNU General Public License for more details.</p>
                 pass
 
             self.config.set("pyOBD","RECONNATTEMPTS",self.RECONNATTEMPTS)
-            
+                
             #write configuration to cfg file
             self.config.write(open(self.configfilepath, 'w'))
 
