@@ -2,10 +2,11 @@
 # vim: shiftwidth=4:tabstop=4:expandtab
 ############################################################################
 #
-# wxgui.py
+# pyobd
 #
 # Copyright 2004 Donour Sizemore (donour@uchicago.edu)
 # Copyright 2009 Secons Ltd. (www.obdtester.com)
+# Copyright 2019 Brian LePage (github.com/beardedone55/)
 #
 # This file is part of pyOBD.
 #
@@ -20,8 +21,7 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with pyOBD; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+# along with pyOBD; if not, see https://www.gnu.org/licenses/.
 ############################################################################
 
 from PyQt5.QtWidgets import *
@@ -58,9 +58,6 @@ ID_HELP_ABOUT = 508
 ID_HELP_VISIT = 509
 ID_HELP_ORDER = 510
 
-#defines notification event for debug tracewindow
-from debugEvent import *
-       
 class MyApp(QApplication):
 
     StatusEvent = pyqtSignal(list)
@@ -71,48 +68,60 @@ class MyApp(QApplication):
     DTCClearEvent = pyqtSignal(int)
 
     def __init__(self, myArgs):
-        QApplication.__init__(self, myArgs)
+        super().__init__(myArgs)
         self.OnInit()
 
     # A listctrl which auto-resizes the column boxes to fill
     # removed style for now
     class MyListCtrl(QTableWidget):
-        def __init__(self):
+        def __init__(self, sortable=True):
             super().__init__()
             self.horizontalHeader().setStretchLastSection(True)
             self.verticalHeader().hide()
             self.setSelectionBehavior(QAbstractItemView.SelectRows)
+            self.sortable = sortable
                 
         def addTableRow(self, rowSize, data, bold=False, italic=False, alignment=Qt.AlignLeft):
             newRow = self.rowCount()
             self.insertRow(newRow)
-            loopcnt = rowSize if rowSize <= len(data) else len(data)
-            for i in range(0,loopcnt):
-                cellData = QTableWidgetItem(data[i])
+            #loopcnt = rowSize if rowSize <= len(data) else len(data)
+            #Truncate data to length of table row and populate row
+            for i, cellData in enumerate(data[:rowSize]):
+                cellData = QTableWidgetItem(cellData)
                 cellData.setFlags(cellData.flags() & ~Qt.ItemIsEditable) #Make item uneditable
                 cellData.setTextAlignment(alignment | Qt.AlignVCenter)
                 font = cellData.font()
                 font.setBold(bold)
                 font.setItalic(italic)
                 cellData.setFont(font)
-
                 self.setItem(newRow, i, cellData)
+
             if rowSize > len(data):
                 self.setSpan(newRow, len(data)-1, 1, rowSize - (len(data)-1))  
-                
-            
+
+        def setColumnCount(self, columns):
+            super().setColumnCount(columns)
+            if self.sortable:
+                self.horizontalHeader().sectionClicked.connect(self.sortMyList)
+
+        def sortMyList(self, column):
+            header = self.horizontalHeader()
+            if not header.isSortIndicatorShown():
+                header.setSortIndicatorShown(True)
+
+            self.sortItems(column, header.sortIndicatorOrder())
 
     #Add a Widget to a panel with a layout and return the Panel
     class MyPanel(QWidget):
         def __init__(self, widget):
-            QWidget.__init__(self)
+            super().__init__()
             layout = QVBoxLayout()
             layout.addWidget(widget)
             self.setLayout(layout)
 
     class MyNumberInput(QLineEdit):
         def __init__(self, defaultText='', width=20):
-            QLineEdit.__init__(self, defaultText)
+            super().__init__(defaultText)
             self.setFixedWidth(width)
             validator = QIntValidator()
             validator.setBottom(0)
@@ -129,7 +138,7 @@ class MyApp(QApplication):
             self._notify_window=_notify_window
             self._nb=_nb
             self.active = []
-            threading.Thread.__init__ ( self )
+            super().__init__ ()
         
         def initCommunication(self):
             self.port = obd_io.OBDPort(self.portName,self.baudrate,self._notify_window,self.SERTIMEOUT,self.RECONNATTEMPTS)
@@ -148,9 +157,9 @@ class MyApp(QApplication):
                 ecu = self.port.ecu_addresses[0]
                 supp = self.port.get_supported(ecu) #read supported mode $01 
                                                     #PIDS of 1st ECU that responds
-                for i in range(1, len(supp)):
+                for i, supported in enumerate(supp,1):
                     self.active.append(0)
-                    if supp[i-1] == "1": #Unhide Row if supported
+                    if supported == "1": #Unhide Row if supported
                         self._notify_window.ResultEvent.emit([i,0,""])
                         self._notify_window.sensors.setRowHidden(i,False)
                     else:
@@ -181,15 +190,14 @@ class MyApp(QApplication):
                 prevstate=curstate
                 curstate=self._nb.currentIndex()
                 if curstate==1: #show tests tab
-                    res=self.port.get_tests_MIL()
-                    for i in range(0,len(res)):
-                        self._notify_window.TestEvent.emit([i,1,res[i]])
+                    results=self.port.get_tests_MIL()
+                    for i,result in enumerate(results):
+                        self._notify_window.TestEvent.emit([i,1,result])
                 
                 elif curstate==2 and ecu is not None: #show sensor tab
-                    for i in range(3, len(self.active)):
-                        if self.active[i]:
+                    for i,active in enumerate(self.active[3:],3):
+                        if active:
                             s = self.port.sensor(i,ecu)
-
                             self._notify_window.ResultEvent.emit([i,2,"%s (%s)" % (s[1], s[2])])
                         if self._notify_window.ThreadControl==666:
                             break
@@ -209,11 +217,10 @@ class MyApp(QApplication):
                 debug("Invalid sensor id")
 
         def all_off(self):
-            for i in range(0, len(self.active)):
-                self.off(i)
+            self.active = [0] * len(self.active)
+
         def all_on(self):
-            for i in range(0, len(self.active)):
-                self.off(i)
+            self.active = [1] * len(self.active)
                 
         def stop(self):
             if self.port != None: #if stop is called before any connection port is not defined (and not connected )
@@ -266,8 +273,8 @@ class MyApp(QApplication):
         self.sensors.setColumnWidth(0,70)
         self.sensors.setColumnWidth(1,250)
 
-        for i in range(0, len(obd_io.obd_sensors.SENSORS)):
-            s = obd_io.obd_sensors.SENSORS[i].name
+        for i,obd_sensor in enumerate(obd_io.obd_sensors.SENSORS):
+            s = obd_sensor.name
             self.sensors.addTableRow(3, ['', s, ''])
             self.sensors.item(i,1).setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
             self.sensors.item(i,0).setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
@@ -375,8 +382,8 @@ class MyApp(QApplication):
         OBDTestPanel = self.MyPanel(self.OBDTests)
         self.nb.addTab(OBDTestPanel, "Tests")
                 
-        for i in range(0,len(ptest)): #fill MODE 1 PID 1 test description 
-            self.OBDTests.addTableRow(2, [ptest[i],'---'])
+        for i in ptest: #fill MODE 1 PID 1 test description 
+            self.OBDTests.addTableRow(2, [i,'---'])
             
         self.build_sensor_page()
 
@@ -451,7 +458,8 @@ class MyApp(QApplication):
 (C) 2004 Charles Donour Sizemore</p>
 
 <p><a href='http://www.obdtester.com/'>http://www.obdtester.com/</a><br>
-<a href='http://www.secons.com/'>http://www.secons.com/</a></p>
+<a href='http://www.secons.com/'>http://www.secons.com/</a><br>
+<a href='https://github.com/beardedone55/'>https://github.com/beardedone55/</a></p>
 
 <p>PyOBD is free software; you can redistribute it and/or modify 
 it under the terms of the GNU General Public License as published by the Free Software Foundation; 

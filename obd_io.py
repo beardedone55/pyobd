@@ -5,6 +5,7 @@
 # 
 # Copyright 2004 Donour Sizemore (donour@uchicago.edu)
 # Copyright 2009 Secons Ltd. (www.obdtester.com)
+# Copyright 2019 Brian LePage (github.com/beardedone55/)
 #
 # This file is part of pyOBD.
 #
@@ -19,15 +20,13 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with pyOBD; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-###########################################################################
+# along with pyOBD; if not, see https://www.gnu.org/licenses/.
+############################################################################
 
 import serial
 import string
 import time
 from math import ceil
-import wx #due to debugEvent messaging
 
 import obd_sensors
 
@@ -38,39 +37,6 @@ CLEAR_DTC_COMMAND = "04"
 GET_PENDING_DTC_COMMAND = "07"
 GET_DTC_RESPONSE = "43"
 GET_PENDING_DTC_RESPONSE = "47"
-
-from debugEvent import *
-
-#__________________________________________________________________________
-def decrypt_dtc_code(code):
-    """Returns the 5-digit DTC code from hex encoding"""
-    dtc = []
-    current = code
-    for i in range(0,3):
-        if len(current)<4:
-            raise "Tried to decode bad DTC: %s" % code
-
-        tc = obd_sensors.hex_to_int(current[0]) #typecode
-        tc = tc >> 2
-        if   tc == 0:
-            type = "P"
-        elif tc == 1:
-            type = "C"
-        elif tc == 2:
-            type = "B"
-        elif tc == 3:
-            type = "U"
-        else:
-            raise tc
-
-        dig1 = str(obd_sensors.hex_to_int(current[0]) & 3)
-        dig2 = str(obd_sensors.hex_to_int(current[1]))
-        dig3 = str(obd_sensors.hex_to_int(current[2]))
-        dig4 = str(obd_sensors.hex_to_int(current[3]))
-        dtc.append(type+dig1+dig2+dig3+dig4)
-        current = current[4:]
-    return dtc
-#__________________________________________________________________________
 
 class OBDPort:
     """ OBDPort abstracts all communication with OBD-II device."""

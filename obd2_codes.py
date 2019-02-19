@@ -1,10 +1,12 @@
 #!/usr/bin/env python
 # vim: shiftwidth=4:tabstop=4:expandtab
-###########################################################################
-# obd_sensors.py
+############################################################################
+#
+# obd2_codes.py
 #
 # Copyright 2004 Donour Sizemore (donour@uchicago.edu)
 # Copyright 2009 Secons Ltd. (www.obdtester.com)
+# Copyright 2019 Brian LePage (github.com/beardedone55/)
 #
 # This file is part of pyOBD.
 #
@@ -19,9 +21,9 @@
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with pyOBD; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-###########################################################################
+# along with pyOBD; if not, see https://www.gnu.org/licenses/.
+############################################################################
+
 pcodes = {
     "P0001": "Fuel Volume Regulator Control Circuit/Open",
     "P0002": "Fuel Volume Regulator Control Circuit Range/Performance",
