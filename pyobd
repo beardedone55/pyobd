@@ -27,7 +27,7 @@
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
-    
+
 import obd_io #OBD2 funcs
 import os #os.environ
 
@@ -80,7 +80,7 @@ class MyApp(QApplication):
             self.verticalHeader().hide()
             self.setSelectionBehavior(QAbstractItemView.SelectRows)
             self.sortable = sortable
-                
+
         def addTableRow(self, rowSize, data, bold=False, italic=False, alignment=Qt.AlignLeft):
             newRow = self.rowCount()
             self.insertRow(newRow)
@@ -97,7 +97,7 @@ class MyApp(QApplication):
                 self.setItem(newRow, i, cellData)
 
             if rowSize > len(data):
-                self.setSpan(newRow, len(data)-1, 1, rowSize - (len(data)-1))  
+                self.setSpan(newRow, len(data)-1, 1, rowSize - (len(data)-1))
 
         def setColumnCount(self, columns):
             super().setColumnCount(columns)
@@ -126,36 +126,36 @@ class MyApp(QApplication):
             validator = QIntValidator()
             validator.setBottom(0)
             self.setValidator(validator)
-            
+
     class sensorProducer(threading.Thread):
         def __init__(self, _notify_window,portName,baudrate,SERTIMEOUT,RECONNATTEMPTS,_nb):
             from queue import Queue
             self.portName = portName
             self.baudrate = baudrate
             self.RECONNATTEMPTS=RECONNATTEMPTS
-            self.SERTIMEOUT=SERTIMEOUT 
+            self.SERTIMEOUT=SERTIMEOUT
             self.port = None
             self._notify_window=_notify_window
             self._nb=_nb
             self.active = []
             super().__init__ ()
-        
+
         def initCommunication(self):
             self.port = obd_io.OBDPort(self.portName,self.baudrate,self._notify_window,self.SERTIMEOUT,self.RECONNATTEMPTS)
-            
+
             if self.port.State==0: #Cant open serial port
                 return None
-                
+
             self.active   = []
-            
+
             self.active.append(0); #PID 0 is always supported
-            
+
             self._notify_window.ResultEvent.emit([0,0,""])
             self._notify_window.DebugEvent.emit(1,"Communication initialized...")
-            
+
             if len(self.port.ecu_addresses) > 0:
                 ecu = self.port.ecu_addresses[0]
-                supp = self.port.get_supported(ecu) #read supported mode $01 
+                supp = self.port.get_supported(ecu) #read supported mode $01
                                                     #PIDS of 1st ECU that responds
                 for i, supported in enumerate(supp,1):
                     self.active.append(0)
@@ -165,7 +165,7 @@ class MyApp(QApplication):
                     else:
                         self._notify_window.sensors.setRowHidden(i,True)
             return "OK"
-        
+
         def run(self):
             self._notify_window.StatusEvent.emit([0,1,"Connecting...."])
             self.initCommunication()
@@ -174,7 +174,7 @@ class MyApp(QApplication):
                 self._notify_window.StatusEvent.emit([666]) #signal apl, that communication was disconnected
                 self._notify_window.StatusEvent.emit([0,1,"Error. Cannot connect..."])
                 return None
-              
+
             self._notify_window.StatusEvent.emit([0,1,"Connected"])
             self._notify_window.StatusEvent.emit([2,1,self.port.ELMver])
             self._notify_window.StatusEvent.emit([1,1,self.port.protocol])
@@ -193,7 +193,7 @@ class MyApp(QApplication):
                     results=self.port.get_tests_MIL()
                     for i,result in enumerate(results):
                         self._notify_window.TestEvent.emit([i,1,result])
-                
+
                 elif curstate==2 and ecu is not None: #show sensor tab
                     for i,active in enumerate(self.active[3:],3):
                         if active:
@@ -202,16 +202,16 @@ class MyApp(QApplication):
                         if self._notify_window.ThreadControl==666:
                             break
                 else:
-                    pass 
+                    pass
             self.stop()
 
         def off(self, id):
-            if id >= 0 and id < len(self.active): 
+            if id >= 0 and id < len(self.active):
                 self.active[id] = 0
             else:
                 debug("Invalid sensor id")
         def on(self, id):
-            if id >= 0 and id < len(self.active): 
+            if id >= 0 and id < len(self.active):
                 self.active[id] = 1
             else:
                 debug("Invalid sensor id")
@@ -221,15 +221,15 @@ class MyApp(QApplication):
 
         def all_on(self):
             self.active = [1] * len(self.active)
-                
+
         def stop(self):
             if self.port != None: #if stop is called before any connection port is not defined (and not connected )
                 self.port.close()
             self._notify_window.StatusEvent.emit([0,1,"Disconnected"])
             self._notify_window.StatusEvent.emit([2,1,"----"])
-  
+
   #class producer end
-        
+
     def sensor_control_on(self): #after connection enable few buttons
         self.configAction.setEnabled(False)
         self.connectAction.setEnabled(False)
@@ -254,8 +254,8 @@ class MyApp(QApplication):
                 self.sensors.item(row,2).setText('-------')
             else:
                 debug("Incorrect sensor state")
-        
-        self.sensors.cellClicked.connect(sensor_toggle)                
+
+        self.sensors.cellClicked.connect(sensor_toggle)
 
     def sensor_control_off(self): #after disconnect disable fer buttons
         self.getDTCAction.setEnabled(False)
@@ -265,7 +265,7 @@ class MyApp(QApplication):
         self.disconnectAction.setEnabled(False)
         self.GetDTCButton.setEnabled(False)
         self.ClearDTCButton.setEnabled(False)
-                
+
     def build_sensor_page(self):
         self.sensors = self.MyListCtrl()
         self.sensors.setColumnCount(3)
@@ -279,38 +279,38 @@ class MyApp(QApplication):
             self.sensors.item(i,1).setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
             self.sensors.item(i,0).setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
             self.sensors.setRowHidden(i, True)
-        
+
         sensorPage = self.MyPanel(self.sensors)
         self.nb.addTab(sensorPage, "Sensors")
-    
+
     def build_DTC_page(self):
         self.DTCpanel = QWidget()
         self.GetDTCButton  = QPushButton('Get DTC')
         self.ClearDTCButton = QPushButton('Clear DTC')
-        
+
         panelLayout = QGridLayout()
         panelLayout.addWidget(self.GetDTCButton,0,0)
         panelLayout.addWidget(self.ClearDTCButton,0,1)
-        
+
         #bind functions to button click action
         self.GetDTCButton.clicked.connect(self.GetDTC)
         self.ClearDTCButton.clicked.connect(self.QueryClear)
-        
+
         self.dtc = self.MyListCtrl()
-                                   
+
         self.dtc.setColumnCount(3)
         self.dtc.setHorizontalHeaderLabels(['Code','Status','Trouble Code'])
         self.dtc.setColumnWidth(0,100)
         self.dtc.setColumnWidth(1,100)
         panelLayout.addWidget(self.dtc,1,0,1,2)
         self.DTCpanel.setLayout(panelLayout)
-        
+
         self.nb.addTab(self.DTCpanel, "DTC")
-         
+
     def TraceDebug(self,level,msg):
         if self.DEBUGLEVEL<=level:
             self.trace.addTableRow(2, [str(level),msg])
-            
+
     def OnInit(self):
         self.ThreadControl = 0 #say thread what to do
         self.COMPORT = 0
@@ -323,14 +323,14 @@ class MyApp(QApplication):
             menuItemAction.setStatusTip(ToolTipText)
             menuItemAction.triggered.connect(ItemTrigger)
             return menuItemAction
-            
+
 
         #read settings from file
         self.config = configparser.RawConfigParser()
-                
+
         #print platform.system()
-        #print platform.mac_ver()[]        
-        
+        #print platform.mac_ver()[]
+
         if "OS" in os.environ.keys(): #runnig under windows
             self.configfilepath="pyobd.ini"
         else:
@@ -345,7 +345,7 @@ class MyApp(QApplication):
             self.BAUDRATE=self.config.get("pyOBD","BAUDRATE")
             self.RECONNATTEMPTS=self.config.getint("pyOBD","RECONNATTEMPTS")
             self.SERTIMEOUT=self.config.getint("pyOBD","SERTIMEOUT")
-        
+
         frame = QMainWindow()
         frame.setWindowTitle('pyOBD-II')
         self.frame=frame
@@ -356,9 +356,9 @@ class MyApp(QApplication):
         self.DTCClearEvent.connect(self.OnDtcClear)
         self.StatusEvent.connect(self.OnStatus)
         self.TestEvent.connect(self.OnTests)
-        
+
         # Main notebook frames
-        
+
         self.nb = QTabWidget(frame)
         self.frame.setCentralWidget(self.MyPanel(self.nb))
 
@@ -381,14 +381,14 @@ class MyApp(QApplication):
 
         OBDTestPanel = self.MyPanel(self.OBDTests)
         self.nb.addTab(OBDTestPanel, "Tests")
-                
-        for i in ptest: #fill MODE 1 PID 1 test description 
+
+        for i in ptest: #fill MODE 1 PID 1 test description
             self.OBDTests.addTableRow(2, [i,'---'])
-            
+
         self.build_sensor_page()
 
         self.build_DTC_page()
-        
+
         self.trace = self.MyListCtrl()
         self.trace.setColumnCount(2)
         self.trace.setHorizontalHeaderLabels(['Level','Message'])
@@ -400,7 +400,7 @@ class MyApp(QApplication):
         self.TraceDebug(1,"Application started")
 
         self.frame.statusBar()
-        
+
         # Creating the menubar.
         self.menuBar = self.frame.menuBar()
         self.filemenu = self.menuBar.addMenu("&File") # Adding the "filemenu" to the MenuBar
@@ -430,7 +430,7 @@ class MyApp(QApplication):
         self.dtcmenu.addAction(self.clearDTCAction)
         self.dtcmenu.addAction(self.codeLookupAction)
         #self.dtcmenu.addAction(self.testDTCAction)
-        
+
         self.aboutAction = CreateMenuItem("About this program","",self.OnHelpAbout)
         self.visitAction = CreateMenuItem("Visit program homepage","",self.OnHelpVisit)
         self.orderAction = CreateMenuItem("Order OBD-II interface","",self.OnHelpOrder)
@@ -446,10 +446,10 @@ class MyApp(QApplication):
 
     def OnHelpVisit(self):
         webbrowser.open("http://www.obdtester.com/pyobd")
-    
+
     def OnHelpOrder(self):
         webbrowser.open("http://www.obdtester.com/order")
-    
+
     def OnHelpAbout(self): #todo about box
         Text = """<p>PyOBD is an automotive OBD2 diagnostic application that works with ELM23x cables.</p>
 
@@ -461,12 +461,12 @@ class MyApp(QApplication):
 <a href='http://www.secons.com/'>http://www.secons.com/</a><br>
 <a href='https://github.com/beardedone55/'>https://github.com/beardedone55/</a></p>
 
-<p>PyOBD is free software; you can redistribute it and/or modify 
-it under the terms of the GNU General Public License as published by the Free Software Foundation; 
+<p>PyOBD is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by the Free Software Foundation;
 either version 2 of the License, or (at your option) any later version.</p>
 
 <p>PyOBD is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
-without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 See the GNU General Public License for more details.</p>
 
 <p>You should have received a copy of the GNU General Public License along with PyOBD; if not, see <a href='https://www.gnu.org/licenses/'>https://www.gnu.org/licenses/.</a></p>
@@ -477,17 +477,17 @@ See the GNU General Public License for more details.</p>
 
     def OnResult(self,event):
         self.sensors.item(event[0], event[1]).setText(event[2])
-    
+
     def OnStatus(self,event):
         if event[0] == 666: #signal, that connection falied
             self.sensor_control_off()
         else:
             self.status.item(event[0],event[1]).setText(event[2])
-    
+
     def OnTests(self,event):
         self.OBDTests.addTableRow(3, event)
-         
-    def OnDebug(self, level, msg):    
+
+    def OnDebug(self, level, msg):
         self.TraceDebug(level, msg)
 
     def OnDtcClear(self, event):
@@ -495,7 +495,7 @@ See the GNU General Public License for more details.</p>
             self.dtc.setRowCount(0)
         else:
             self.DebugEvent.emit(1,'Unexpected OnDtcClear -> %d' % event)
-    
+
     def OnDtc(self,event):
         if len(event) == 1:
             alignment = Qt.AlignHCenter
@@ -504,25 +504,25 @@ See the GNU General Public License for more details.</p>
             alignment = Qt.AlignLeft
             bold = False
         self.dtc.addTableRow(3, event, bold=bold, alignment=alignment)
-    
+
     def OnDisconnect(self): #disconnect connection to ECU
         self.ThreadControl=666
         self.sensor_control_off()
-        
+
     def OpenPort(self):
         if self.senprod: # signal current producers to finish
             self.senprod.stop()
-        self.ThreadControl = 0    
+        self.ThreadControl = 0
         self.senprod = self.sensorProducer(self,self.COMPORT,self.BAUDRATE, self.SERTIMEOUT,self.RECONNATTEMPTS,self.nb)
-        self.senprod.start() 
-            
+        self.senprod.start()
+
         self.sensor_control_on()
-        
+
     def onTestDTC(self):
         self.DTCClearEvent.emit(0) #clear list
         self.DTCEvent.emit(['DTCs from Fake ECU'])
         self.DTCEvent.emit(['P0001', 'Active', 'Test DTC'])
-        
+
     def GetDTC(self):
         self.DTCClearEvent.emit(0) #clear list
         DTCCodes=self.senprod.port.get_dtc()
@@ -535,10 +535,10 @@ See the GNU General Public License for more details.</p>
             if len(DTCCodes[ecu]) == 0:
                 self.DTCEvent.emit(["No DTC codes (codes cleared)"])
             for code in DTCCodes[ecu]:
-                self.DTCEvent.emit([code[1],code[0],pcodes[code[1]]])   
+                self.DTCEvent.emit([code[1],code[0],pcodes[code[1]]])
 
         self.nb.setCurrentWidget(self.DTCpanel.parentWidget())
-        
+
     def CodeLookup(self):
         id = 0
         diag = QDialog(self.frame)
@@ -571,7 +571,7 @@ See the GNU General Public License for more details.</p>
         diag.resize(400,500)
         diag.show()
 
-        
+
     def QueryClear(self):
         id = 0
         diag = QMessageBox(QMessageBox.Question, 'Clear DTC?', \
@@ -586,8 +586,8 @@ See the GNU General Public License for more details.</p>
         self.senprod.port.clear_dtc()
         self.DTCClearEvent.emit(0) #clear list
         self.nb.setCurrentWidget(self.DTCpanel.parentWidget())
-        
-    
+
+
     def scanSerial(self):
         """Scan for available ports. Return a list of serial names"""
         available = []
@@ -600,7 +600,7 @@ See the GNU General Public License for more details.</p>
         diag = QDialog(self.frame)
         diag.setWindowTitle("Configure")
         sizer = QFormLayout()
-            
+
         ports = self.scanSerial()
         comportDropdown = QComboBox()
         comportDropdown.addItems(ports)
@@ -612,14 +612,14 @@ See the GNU General Public License for more details.</p>
         baudrateDropdown.addItems(baudrates)
         sizer.addRow('Choose Baud Rate: ', baudrateDropdown)
 
-        #timeOut input control                
+        #timeOut input control
         timeoutCtrl = self.MyNumberInput(str(self.SERTIMEOUT))
         sizer.addRow('Timeout:', timeoutCtrl)
-            
-        #reconnect attempt input control                
+
+        #reconnect attempt input control
         reconnectCtrl = self.MyNumberInput(str(self.RECONNATTEMPTS))
         sizer.addRow('Reconnect attempts:', reconnectCtrl)
-                   
+
         #set actual serial port choice
         if (self.COMPORT != 0) and (self.COMPORT in ports):
             comportDropdown.setCurrentIndex(ports.index(self.COMPORT))
@@ -637,7 +637,7 @@ See the GNU General Public License for more details.</p>
                 baudrateDropdown.setCurrentIndex(baudrates.index(self.BAUDRATE))
             else:
                 baudrateDropdown.setCurrentIndex(baudrates.index('38400'))
-            
+
         okButton = QPushButton('OK')
         cancelButton = QPushButton('Cancel')
         buttonLayout = QHBoxLayout()
@@ -651,7 +651,7 @@ See the GNU General Public License for more details.</p>
         r  = diag.exec()
 
         if r == QDialog.Accepted and comportDropdown.currentIndex() >=0 and baudrateDropdown.currentIndex() >=0:
-                
+
             #create section
             if self.config.sections()==[]:
                 self.config.add_section("pyOBD")
@@ -660,8 +660,8 @@ See the GNU General Public License for more details.</p>
             self.config.set("pyOBD","COMPORT",self.COMPORT)
 
             self.BAUDRATE = baudrates[baudrateDropdown.currentIndex()]
-            self.config.set("pyOBD","BAUDRATE",self.BAUDRATE)			
-                 
+            self.config.set("pyOBD","BAUDRATE",self.BAUDRATE)
+
             #set and save SERTIMEOUT
             #If user enters a blank, it will remain unchanged
             try:
@@ -670,8 +670,8 @@ See the GNU General Public License for more details.</p>
                 pass
 
             self.config.set("pyOBD","SERTIMEOUT",self.SERTIMEOUT)
-            self.status.item(3,1).setText(self.COMPORT); 
-                
+            self.status.item(3,1).setText(self.COMPORT);
+
             #set and save RECONNATTEMPTS
             #If user enters a blank, it will remain unchanged
             try:
@@ -680,7 +680,7 @@ See the GNU General Public License for more details.</p>
                 pass
 
             self.config.set("pyOBD","RECONNATTEMPTS",self.RECONNATTEMPTS)
-                
+
             #write configuration to cfg file
             self.config.write(open(self.configfilepath, 'w'))
 

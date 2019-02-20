@@ -2,7 +2,7 @@
 # vim: shiftwidth=4:tabstop=4:expandtab
 ###########################################################################
 # odb_io.py
-# 
+#
 # Copyright 2004 Donour Sizemore (donour@uchicago.edu)
 # Copyright 2009 Secons Ltd. (www.obdtester.com)
 # Copyright 2019 Brian LePage (github.com/beardedone55/)
@@ -44,14 +44,14 @@ class OBDPort:
         """Initializes port by resetting device and gettings supported PIDs. """
         # These should really be set by the user.
         #baud     = 9600
-        baud = int(baudrate)		 
+        baud = int(baudrate)
         databits = 8
         par      = serial.PARITY_NONE  # parity
         sb       = 1                   # stop bits
         to       = SERTIMEOUT
         self.ELMver = "Unknown"
         self.State = 1 #state SERIAL is 1 connected, 0 disconnected (connection failed)
-         
+
         self._notify_window=_notify_window
         self._notify_window.DebugEvent.emit(1,'Opening interface (serial port)')
         self.port = None
@@ -62,14 +62,14 @@ class OBDPort:
         try:
             self.port = serial.Serial(portnum,baud, parity = par, stopbits = sb, \
                 bytesize = databits,timeout = to)
-             
+
         except serial.SerialException:
             self.State = 0
             return None
-             
+
         self._notify_window.DebugEvent.emit(1,"Interface successfully " + self.port.portstr + " opened")
         self._notify_window.DebugEvent.emit(1,"Connecting to ECU...")
-         
+
         def ConnectionError(count, msg = ''):
             self._notify_window.DebugEvent.emit(2,"Connection attempt failed: " + msg)
             count += 1
@@ -128,7 +128,7 @@ class OBDPort:
             #    |  |    ------Response Code Service 1
             #    |  -----------PCI Byte
             #    --------------ECU Response Address
-            #    
+            #
             #For others, expecting something like this:
             #   41 6B E0 41 00
             #         ^  ^  ^
@@ -159,7 +159,7 @@ class OBDPort:
         self.close()
         self.State = 0
         return None
-              
+
     def getEcuNum(self, ecuAddress):
         if ecuAddress in self.ecu_addresses:
             return self.ecu_addresses.index(ecuAddress)
@@ -168,11 +168,11 @@ class OBDPort:
 
     def close(self):
         """ Resets device and closes all associated filehandles"""
-         
+
         if (self.port!= None) and self.State==1:
             self.send_command("atz")
             self.port.close()
-         
+
         self.port = None
         #self.ELMver = "Unknown"
 
@@ -188,14 +188,14 @@ class OBDPort:
                 self._notify_window.DebugEvent.emit(3,"Send command: " + cmd)
             except:
                 self._notify_window.DebugEvent.emit(3,"Error Sending command: " + cmd)
-             
+
 
     def interpret_result(self,data,ecu):
         """Internal use only: not a public interface"""
         # Code will be the string returned from the device.
         # It should look something like this:
         # '41 11 0 0\r\r'
-         
+
         # get the first thing returned, echo should be off
         if data is None:
             return "NODATA"
@@ -206,8 +206,8 @@ class OBDPort:
         for code in data:
             if len(code) < 7:
                 raise "BogusCode"
-         
-            #cables can behave differently 
+
+            #cables can behave differently
             if code[:6] == "NODATA": # there is no such sensor
                 return "NODATA"
 
@@ -238,22 +238,22 @@ class OBDPort:
             return retVal[ecu]
         else:
             return "NODATA"
-     
-    #get_result reads input from serial port and 
-    #returns array of lines returned with 
+
+    #get_result reads input from serial port and
+    #returns array of lines returned with
     def get_result(self):
         """Internal use only: not a public interface"""
         if self.port:
             buffer = ""
             result = []
 
-            while True: 
+            while True:
                 try:
                     c = self.port.read(1).decode('utf8', 'ignore')
                 except Exception as e:
                     self._notify_window.DebugEvent.emit(3,"Get Result Failed: " + str(e))
-                    break 
-                    
+                    break
+
                 if len(c) == 0 or c == '>': #Loop until SOI or buffer is empty
                     break
                 if c != '\r' and c != '\n': #Ignore line feeds
@@ -261,7 +261,7 @@ class OBDPort:
                 elif (c == '\r' or c == '\n') and len(buffer) > 0: #ignore blank lines
                     result.append(buffer) #add line to return result
                     buffer = ''
-                     
+
             for line in result:
                 self._notify_window.DebugEvent.emit(3,"Get result: " + line)
 
@@ -282,7 +282,7 @@ class OBDPort:
             return None
 
         for line in data:
-            line = line.split(' ') #Turn data into list of bytes 
+            line = line.split(' ') #Turn data into list of bytes
             if not self.prot_is_CAN:
                 line = line[2:]
             ecu = line[0]
@@ -296,7 +296,7 @@ class OBDPort:
 
                 elif line[1][0] == '1':   #PCI Byte indicates 1st frame of multiframe response
                     byteCount[ecu] = hex_to_int(line[1][1] + line[2]) #PCI Byte extended 1 byte for byte count
-                    retVal[ecu] += ['00'] * (byteCount[ecu]-len(retVal[ecu])) #Fill out data with zeroes                      
+                    retVal[ecu] += ['00'] * (byteCount[ecu]-len(retVal[ecu])) #Fill out data with zeroes
                     retVal[ecu] = retVal[ecu][0:byteCount[ecu]]               #Truncate list to byte count
                     line = line[3:]                                           #Remove ECU Address and Byte Count
                     i = 0
@@ -309,14 +309,14 @@ class OBDPort:
                     line = line[2:]
                     if ecu not in byteCount:
                         retVal[ecu] += ['00'] * (i+7 - len(retVal[ecu])) #Next Frame came before 1st frame.
-                            #Fill through this frame with zeroes. 
+                            #Fill through this frame with zeroes.
                     for data in line:
                         if i < len(retVal[ecu]):
                             retVal[ecu][i] = data
                         else:
                             break
                         i += 1
-                          
+
             else:
                 retVal[ecu] += line[1:]
 
@@ -326,7 +326,7 @@ class OBDPort:
     def get_sensor_value(self,sensor,ecu):
         """Internal use only: not a public interface"""
         data = self.get_result()
-         
+
         if data != None:
             data = self.interpret_result(data,ecu)
             if data != "NODATA":
@@ -335,7 +335,7 @@ class OBDPort:
                         data[key] = sensor.value(data[key])
                 else:
                     data = sensor.value(data)
-                      
+
         else:
             return "NORESPONSE"
         return data
@@ -386,7 +386,7 @@ class OBDPort:
             for i in sensor_index_list:
                 retVal[i] = sensor(self, i, ecu, mode, sensors)
 
-        return retVal 
+        return retVal
 
     def get_supported(self, ecu, mode = '01', sensors = obd_sensors.SENSORS):
         data = self.get_sensors(obd_sensors.SUPPORTED_PIDS, ecu, mode, sensors)
@@ -395,7 +395,7 @@ class OBDPort:
             if i in data:
                 retVal += data[i][1]
             else:
-                retVal += '0' * 32 #Assume not supported (32 zeroes) 
+                retVal += '0' * 32 #Assume not supported (32 zeroes)
 
         return retVal
 
@@ -405,25 +405,25 @@ class OBDPort:
         for s in obd_sensors.SENSORS:
             names.append(s.name)
         return names
-         
+
     def get_tests_MIL(self):
         statusText=["Unsupported","Supported - Completed","Unsupported","Supported - Incompleted"]
-         
+
         statusRes = self.sensor(1)[1] #GET values
         statusTrans = [] #translate values to text
-         
+
         statusTrans.append(str(statusRes[0])) #DTCs
-         
+
         if statusRes[1]==0: #MIL
             statusTrans.append("Off")
         else:
             statusTrans.append("On")
-            
+
         for i in range(2,len(statusRes)): #Tests
-            statusTrans.append(statusText[statusRes[i]]) 
-         
+            statusTrans.append(statusText[statusRes[i]])
+
         return statusTrans
-          
+
     def get_dtc(self):
         """Returns a list of all pending DTC codes. Each element consists of
         a 2-tuple: (DTC code (string), Code description (string) )"""
@@ -443,8 +443,8 @@ class OBDPort:
                             self._notify_window.DebugEvent.emit(1,'Unexpected Response to GET_DTC (%s)' % (dataList[i]))
                             break
                         i += 1
-                    
-                    #For CAN, 1st byte is Number of DTCs        
+
+                    #For CAN, 1st byte is Number of DTCs
                     if self.prot_is_CAN and i == 1:
                         NumCodes = hex_to_int(dataList[i])
                         i += 1
@@ -459,14 +459,14 @@ class OBDPort:
                     val  = (val1<<8)+val2 #DTC val as int
 
                     i += 2
-                    
+
                     if val==0: #skip fill of last packet
                         continue
-                       
-                    DTCStr=dtcLetters[(val&0xC000)>>14]+str((val&0x3000)>>12)+str(val&0x0fff) 
+
+                    DTCStr=dtcLetters[(val&0xC000)>>14]+str((val&0x3000)>>12)+str(val&0x0fff)
                     DTCCodes[ecu].append([DTCType, DTCStr])
-         
-            return DTCCodes 
+
+            return DTCCodes
 
         DTCCodes = {}
         r = self.sensor(1)[1] #data
@@ -474,7 +474,7 @@ class OBDPort:
         mil = {}
         if r != 'NODATA' and r != 'NORESPONSE':
             #Each ECU may return different number of DTCs
-            for ecu in r: 
+            for ecu in r:
                 dtcNumber[ecu] = r[ecu][0]
                 mil[ecu] = r[ecu][1]
                 self._notify_window.DebugEvent.emit(1,'Number of stored DTC: %d' % dtcNumber[ecu])
@@ -493,31 +493,31 @@ class OBDPort:
         #read mode 7
         self.send_command(GET_PENDING_DTC_COMMAND)
         res = self.get_obd_data_bytes()
-          
+
         if res != None: #Pending Trouble Codes Returned
             DTCCodes = parse_get_dtc_data(res, DTCCodes, 'Passive')
-            
+
         return DTCCodes
-          
+
     def clear_dtc(self):
         """Clears all DTCs and freeze frame data"""
-        self.send_command(CLEAR_DTC_COMMAND)     
+        self.send_command(CLEAR_DTC_COMMAND)
         r = self.get_result()
         if r != None:
             r = r[0]
         return r
-     
-    def log(self, sensor_index, filename): 
+
+    def log(self, sensor_index, filename):
         file = open(filename, "w")
-        start_time = time.time() 
+        start_time = time.time()
         if file:
             data = self.sensor(sensor_index)
             file.write("%s     \t%s(%s)\n" % \
-                         ("Time", string.strip(data[0]), data[2])) 
+                         ("Time", string.strip(data[0]), data[2]))
             while 1:
                 now = time.time()
                 data = self.sensor(sensor_index)
                 line = "%.6f,\t%s\n" % (now - start_time, data[1])
                 file.write(line)
                 file.flush()
-          
+

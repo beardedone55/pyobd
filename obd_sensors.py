@@ -38,7 +38,7 @@ def throttle_pos(code):
 def intake_m_pres(code): # in kPa
     code = hex_to_int(code[:2])
     return '%4.3f' % (code * 0.14504)
-    
+
 def fuel_pres(code): # in 3kPa
     code = hex_to_int(code[:2])
     return '%4.3f' % (code * 0.43511)
@@ -82,7 +82,7 @@ def sec_to_min(code):
 
 def temp(code):
     code = hex_to_int(code[:2])
-    return str(code - 40) 
+    return str(code - 40)
 
 def cpass(code):
     #fixme
@@ -101,26 +101,26 @@ def dtc_decrypt(code):
         mil = 1
     else:
         mil = 0
-        
-    # bit 0-6 are the number of dtc's. 
+
+    # bit 0-6 are the number of dtc's.
     num = num & 0x7f
-    
+
     res.append(num)
     res.append(mil)
-    
+
     numB = hex_to_int(code[2:4]) #B byte
-      
+
     for i in range(0,3):
         res.append(((numB>>i)&0x01)+((numB>>(3+i))&0x02))
-    
+
     numC = hex_to_int(code[4:6]) #C byte
     numD = hex_to_int(code[6:8]) #D byte
-       
+
     for i in range(0,7):
         res.append(((numC>>i)&0x01)+(((numD>>i)&0x01)<<1))
-    
-    res.append(((numD>>7)&0x01)) #EGR SystemC7  bit of different 
-    
+
+    res.append(((numD>>7)&0x01)) #EGR SystemC7  bit of different
+
     return res
 
 def ol_cl(code):
@@ -141,7 +141,7 @@ def ol_cl(code):
     codeA = ol_cl_convert(code[0:2])
     codeB = ol_cl_convert(code[2:4])
     return 'Fuel System 1: %s; Fuel System 2: %s' % (codeA, codeB)
-		  
+
 def sensor_voltage(code):
     code = hex_to_int (code[0:2])
     return '%1.3f' % (code * 0.005)
@@ -172,7 +172,7 @@ def hex_to_bitstring(str):
     bitstring = ""
     for i in str:
         # silly type safety, we don't want to eval random stuff
-        if type(i) == type(''): 
+        if type(i) == type(''):
             v = eval("0x%s" % i)
             if v & 8 :
                 bitstring += '1'
@@ -189,7 +189,7 @@ def hex_to_bitstring(str):
             if v & 1:
                 bitstring += '1'
             else:
-                bitstring += '0'                
+                bitstring += '0'
     return bitstring
 
 def km_to_mi(code):
@@ -218,11 +218,11 @@ class Sensor:
 SUPPORTED_PIDS = (0, 0x20, 0x40, 0x60, 0x80)
 
 SENSORS = [
-    Sensor("          Supported PIDs", "0100", hex_to_bitstring  ,""       ),    
-    Sensor("Status Since DTC Cleared", "0101", dtc_decrypt       ,""       ),    
-    Sensor("DTC Causing Freeze Frame", "0102", cpass             ,""       ),    
+    Sensor("          Supported PIDs", "0100", hex_to_bitstring  ,""       ),
+    Sensor("Status Since DTC Cleared", "0101", dtc_decrypt       ,""       ),
+    Sensor("DTC Causing Freeze Frame", "0102", cpass             ,""       ),
     Sensor("      Fuel System Status", "0103", ol_cl             ,""       ),
-    Sensor("   Calculated Load Value", "0104", percent_scale     ,""       ),    
+    Sensor("   Calculated Load Value", "0104", percent_scale     ,""       ),
     Sensor("     Coolant Temperature", "0105", temp              ,"C"      ),
     Sensor("Short Term Fuel Trim - Bank 1", "0106", fuel_trim_percent ,"%" ),
     Sensor("Long Term Fuel Trim - Bank 1", "0107", fuel_trim_percent ,"%"  ),
@@ -250,7 +250,7 @@ SENSORS = [
     Sensor("  Location of O2 sensors", "011D", cpass             ,""       ),
     Sensor("        Aux input status", "011E", cpass             ,""       ),
     Sensor(" Time Since Engine Start", "011F", sec_to_min        ,"min"    ),
-    Sensor("          Supported PIDs", "0120", hex_to_bitstring  ,""       ),    
+    Sensor("          Supported PIDs", "0120", hex_to_bitstring  ,""       ),
     Sensor("Distance Traveled w/ MIL", "0121", km_to_mi          ,"mi"    ),
     Sensor("      Fuel Rail Pressure", "0122", rel_fuel_pres     ,"psi"    ),
     Sensor("      Fuel Rail Pressure", "0123", fuel_pres_10      ,"psi"    ),
@@ -282,20 +282,20 @@ SENSORS = [
     Sensor("Catalyst Temp - Bank 2, Sensor 1", "013D", temp ,"C"      ),
     Sensor("Catalyst Temp - Bank 1, Sensor 2", "013E", temp ,"C"      ),
     Sensor("Catalyst Temp - Bank 2, Sensor 2", "013F", temp ,"C"      ),
-    Sensor("          Supported PIDs", "0140", hex_to_bitstring  ,""       ),    
-    Sensor("Monitor Status - Current", "0141", cpass  ,""       ),    
-    Sensor("  Control Module Voltage", "0142", cm_voltage  ,"%"       ),    
-    Sensor("         Absolute Load %", "0143", abs_load_percent  ,"%"       ),    
-    Sensor("Commanded Equivalence Ratio", "0144", eq_ratio  ,""       ),    
-    Sensor("Relative Throttle Position", "0145", percent_scale  ,"%"       ),    
+    Sensor("          Supported PIDs", "0140", hex_to_bitstring  ,""       ),
+    Sensor("Monitor Status - Current", "0141", cpass  ,""       ),
+    Sensor("  Control Module Voltage", "0142", cm_voltage  ,"%"       ),
+    Sensor("         Absolute Load %", "0143", abs_load_percent  ,"%"       ),
+    Sensor("Commanded Equivalence Ratio", "0144", eq_ratio  ,""       ),
+    Sensor("Relative Throttle Position", "0145", percent_scale  ,"%"       ),
     Sensor("Ambient Air Temperature", "0146", temp ,"C"      ),
-    Sensor("Absolute Throttle Position B", "0147", percent_scale  ,"%"       ),    
-    Sensor("Absolute Throttle Position C", "0148", percent_scale  ,"%"       ),    
-    Sensor("Accelerator Pedal Position", "0149", percent_scale  ,"%"       ),    
-    Sensor("Accelerator Pedal Position E", "014A", percent_scale  ,"%"       ),    
-    Sensor("Accelerator Pedal Position F", "014B", percent_scale  ,"%"       ),    
-    Sensor("Commanded Throttle Actuator", "014C", percent_scale  ,"%"       ),    
-    Sensor("    Time Run with MIL on", "014D", sec_to_min  ,"min"       ),    
+    Sensor("Absolute Throttle Position B", "0147", percent_scale  ,"%"       ),
+    Sensor("Absolute Throttle Position C", "0148", percent_scale  ,"%"       ),
+    Sensor("Accelerator Pedal Position", "0149", percent_scale  ,"%"       ),
+    Sensor("Accelerator Pedal Position E", "014A", percent_scale  ,"%"       ),
+    Sensor("Accelerator Pedal Position F", "014B", percent_scale  ,"%"       ),
+    Sensor("Commanded Throttle Actuator", "014C", percent_scale  ,"%"       ),
+    Sensor("    Time Run with MIL on", "014D", sec_to_min  ,"min"       ),
     Sensor("  Engine Run with MIL on", "014E", sec_to_min        ,"min"    ),
     Sensor("   Max Equivalence Ratio", "014F", hex_to_int      ,""    ),
     Sensor("       Max Air Flow Rate", "0150", hex_to_int      ,""    ),
@@ -308,51 +308,51 @@ SENSORS = [
     Sensor("Secondary O2 STFT - Bank 2", "0157", fuel_trim_percent      ,"%"    ),
     Sensor("Secondary O2 LTFT - Bank 2", "0158", fuel_trim_percent      ,"%"    ),
     Sensor("    Abs Fuel Rail Pressure", "0159", fuel_pres_10      ,"psi"    ),
-    Sensor("Relative Acc Pedal Position", "015A", percent_scale  ,"%"       ),    
-    Sensor("Hybrid Batt Remaining Life", "015B", percent_scale  ,"%"       ),    
-    Sensor("  Engine Oil Temperature", "015C", temp  ,"C"       ),    
+    Sensor("Relative Acc Pedal Position", "015A", percent_scale  ,"%"       ),
+    Sensor("Hybrid Batt Remaining Life", "015B", percent_scale  ,"%"       ),
+    Sensor("  Engine Oil Temperature", "015C", temp  ,"C"       ),
     Sensor("   Fuel Injection Timing", "015D", injection_timing  ,"degrees" ),
     Sensor("        Engine Fuel Rate", "015E", fuel_rate  ,"gal/h"       ),
     Sensor("   Emmission Requirement", "015F", cpass  ,""       ),
-    Sensor("          Supported PIDs", "0160", hex_to_bitstring  ,""       ),    
-    Sensor("        Requested Torque", "0161", req_torque  ,"%"       ),    
-    Sensor("           Actual Torque", "0162", req_torque  ,"%"       ),    
-    Sensor("        Reference Torque", "0163", ref_torque  ,"lbf*ft"  ),    
-    Sensor("    Engine % Torque Data", "0164", cpass  ,""  ),    
-    Sensor("Auxiliary Inputs/Outputs", "0165", cpass  ,""  ),    
-    Sensor("         MAF Sensor Data", "0166", cpass  ,""  ),    
-    Sensor("         ECT Sensor Data", "0167", cpass  ,""  ),    
-    Sensor("         IAT Sensor Data", "0168", cpass  ,""  ),    
-    Sensor("       Cmd EGR/EGR Error", "0169", cpass  ,""  ),    
-    Sensor("       Diesel Intake Air", "016A", cpass  ,""  ),    
-    Sensor("                EGR Temp", "016B", cpass  ,""  ),    
-    Sensor("   Cmd Throtlle Actuator", "016C", cpass  ,""  ),    
-    Sensor("   Fuel Pressure Control", "016D", cpass  ,""  ),    
-    Sensor("Injection Pressure Control", "016E", cpass  ,""  ),    
-    Sensor("Turbo Compressor Pressure", "016F", cpass  ,""  ),    
-    Sensor("  Boost Pressure Control", "0170", cpass  ,""  ),    
-    Sensor("           Turbo Control", "0171", cpass  ,""  ),    
-    Sensor("       Wastegate Control", "0172", cpass  ,""  ),    
-    Sensor("        Exhaust Pressure", "0173", cpass  ,""  ),    
-    Sensor("       Turbo Charger RPM", "0174", cpass  ,""  ),    
-    Sensor("    Turbo Charger Temp A", "0175", cpass  ,""  ),    
-    Sensor("    Turbo Charger Temp B", "0176", cpass  ,""  ),    
-    Sensor("  Charge Air Cooler Temp", "0177", cpass  ,""  ),    
-    Sensor("   Exhaust Temp - Bank 1", "0178", cpass  ,""  ),    
-    Sensor("   Exhaust Temp - Bank 2", "0179", cpass  ,""  ),    
-    Sensor("  Diesel Filter - Bank 1", "017A", cpass  ,""  ),    
-    Sensor("  Diesel Filter - Bank 2", "017B", cpass  ,""  ),    
-    Sensor("      Diesel Filter Temp", "017C", cpass  ,""  ),    
-    Sensor("         NOx NTE Control", "017D", cpass  ,""  ),    
-    Sensor("          PM NTE Control", "017E", cpass  ,""  ),    
-    Sensor("         Engine Run Time", "017F", cpass  ,""  ),    
-    Sensor("          Supported PIDs", "0180", hex_to_bitstring  ,""       ),    
-    Sensor("    Engine Run Time AECD", "0181", cpass  ,""  ),    
-    Sensor("    Engine Run Time AECD", "0182", cpass  ,""  ),    
-    Sensor("              NOx Sensor", "0183", cpass  ,""  ),    
+    Sensor("          Supported PIDs", "0160", hex_to_bitstring  ,""       ),
+    Sensor("        Requested Torque", "0161", req_torque  ,"%"       ),
+    Sensor("           Actual Torque", "0162", req_torque  ,"%"       ),
+    Sensor("        Reference Torque", "0163", ref_torque  ,"lbf*ft"  ),
+    Sensor("    Engine % Torque Data", "0164", cpass  ,""  ),
+    Sensor("Auxiliary Inputs/Outputs", "0165", cpass  ,""  ),
+    Sensor("         MAF Sensor Data", "0166", cpass  ,""  ),
+    Sensor("         ECT Sensor Data", "0167", cpass  ,""  ),
+    Sensor("         IAT Sensor Data", "0168", cpass  ,""  ),
+    Sensor("       Cmd EGR/EGR Error", "0169", cpass  ,""  ),
+    Sensor("       Diesel Intake Air", "016A", cpass  ,""  ),
+    Sensor("                EGR Temp", "016B", cpass  ,""  ),
+    Sensor("   Cmd Throtlle Actuator", "016C", cpass  ,""  ),
+    Sensor("   Fuel Pressure Control", "016D", cpass  ,""  ),
+    Sensor("Injection Pressure Control", "016E", cpass  ,""  ),
+    Sensor("Turbo Compressor Pressure", "016F", cpass  ,""  ),
+    Sensor("  Boost Pressure Control", "0170", cpass  ,""  ),
+    Sensor("           Turbo Control", "0171", cpass  ,""  ),
+    Sensor("       Wastegate Control", "0172", cpass  ,""  ),
+    Sensor("        Exhaust Pressure", "0173", cpass  ,""  ),
+    Sensor("       Turbo Charger RPM", "0174", cpass  ,""  ),
+    Sensor("    Turbo Charger Temp A", "0175", cpass  ,""  ),
+    Sensor("    Turbo Charger Temp B", "0176", cpass  ,""  ),
+    Sensor("  Charge Air Cooler Temp", "0177", cpass  ,""  ),
+    Sensor("   Exhaust Temp - Bank 1", "0178", cpass  ,""  ),
+    Sensor("   Exhaust Temp - Bank 2", "0179", cpass  ,""  ),
+    Sensor("  Diesel Filter - Bank 1", "017A", cpass  ,""  ),
+    Sensor("  Diesel Filter - Bank 2", "017B", cpass  ,""  ),
+    Sensor("      Diesel Filter Temp", "017C", cpass  ,""  ),
+    Sensor("         NOx NTE Control", "017D", cpass  ,""  ),
+    Sensor("          PM NTE Control", "017E", cpass  ,""  ),
+    Sensor("         Engine Run Time", "017F", cpass  ,""  ),
+    Sensor("          Supported PIDs", "0180", hex_to_bitstring  ,""       ),
+    Sensor("    Engine Run Time AECD", "0181", cpass  ,""  ),
+    Sensor("    Engine Run Time AECD", "0182", cpass  ,""  ),
+    Sensor("              NOx Sensor", "0183", cpass  ,""  ),
     ]
-     
-    
+
+
 #___________________________________________________________
 
 def test():
