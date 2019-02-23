@@ -31,7 +31,6 @@ from PyQt5.QtGui import *
 import obd_io #OBD2 funcs
 import os #os.environ
 
-import threading
 import sys
 import serial
 from serial.tools import list_ports
@@ -61,7 +60,7 @@ ID_HELP_ORDER = 510
 class MyApp(QApplication):
 
     StatusEvent = pyqtSignal(list)
-    ResultEvent = pyqtSignal(list)
+    ResultEvent = pyqtSignal(int, int, str)
     DebugEvent = pyqtSignal(int,str)
     TestEvent = pyqtSignal(list)
     DTCEvent = pyqtSignal(list)
@@ -84,7 +83,6 @@ class MyApp(QApplication):
         def addTableRow(self, rowSize, data, bold=False, italic=False, alignment=Qt.AlignLeft):
             newRow = self.rowCount()
             self.insertRow(newRow)
-            #loopcnt = rowSize if rowSize <= len(data) else len(data)
             #Truncate data to length of table row and populate row
             for i, cellData in enumerate(data[:rowSize]):
                 cellData = QTableWidgetItem(cellData)
@@ -111,6 +109,30 @@ class MyApp(QApplication):
 
             self.sortItems(column, header.sortIndicatorOrder())
 
+    class SensorList(MyListCtrl):
+        def __init__(self):
+            super().__init__()
+            self.pid_lookup = {}
+
+        def addTableRow(self, rowSize, data):
+            super().addTableRow(rowSize, data, alignment=Qt.AlignHCenter)
+            pid = data[self.pid_column]
+            self.pid_lookup[pid] = self.rowCount() - 1
+
+        def setColumnCount(self, columns, pid_column):
+            super().setColumnCount(columns)
+            self.pid_column = pid_column
+            self.setColumnHidden(pid_column, True)
+
+        def sortMyList(self, column):
+            super().sortMyList(column)
+            for i in range(self.rowCount()):
+                pid = self.item(i, self.pid_column).text()
+                self.pid_lookup[pid] = i
+
+        def getPid(self, row):
+            return self.item(row, self.pid_column).text()
+
     #Add a Widget to a panel with a layout and return the Panel
     class MyPanel(QWidget):
         def __init__(self, widget):
@@ -127,7 +149,7 @@ class MyApp(QApplication):
             validator.setBottom(0)
             self.setValidator(validator)
 
-    class sensorProducer(threading.Thread):
+    class sensorProducer(QThread):
         def __init__(self, _notify_window,portName,baudrate,SERTIMEOUT,RECONNATTEMPTS,_nb):
             from queue import Queue
             self.portName = portName
@@ -150,7 +172,7 @@ class MyApp(QApplication):
 
             self.active.append(0); #PID 0 is always supported
 
-            self._notify_window.ResultEvent.emit([0,0,""])
+            self._notify_window.ResultEvent.emit(0,0,"")
             self._notify_window.DebugEvent.emit(1,"Communication initialized...")
 
             if len(self.port.ecu_addresses) > 0:
@@ -160,7 +182,7 @@ class MyApp(QApplication):
                 for i, supported in enumerate(supp,1):
                     self.active.append(0)
                     if supported == "1": #Unhide Row if supported
-                        self._notify_window.ResultEvent.emit([i,0,""])
+                        self._notify_window.ResultEvent.emit(i,0,"")
                         self._notify_window.sensors.setRowHidden(i,False)
                     else:
                         self._notify_window.sensors.setRowHidden(i,True)
@@ -189,20 +211,13 @@ class MyApp(QApplication):
             while self._notify_window.ThreadControl!=666 and ecu is not None:
                 prevstate=curstate
                 curstate=self._nb.currentIndex()
-                if curstate==1: #show tests tab
-                    results=self.port.get_tests_MIL()
-                    for i,result in enumerate(results):
-                        self._notify_window.TestEvent.emit([i,1,result])
-
-                elif curstate==2 and ecu is not None: #show sensor tab
+                if curstate==2 and ecu is not None: #show sensor tab
                     for i,active in enumerate(self.active[3:],3):
                         if active:
                             s = self.port.sensor(i,ecu)
-                            self._notify_window.ResultEvent.emit([i,2,"%s (%s)" % (s[1], s[2])])
+                            self._notify_window.ResultEvent.emit(i,4,"%s (%s)" % (s[1], s[2]))
                         if self._notify_window.ThreadControl==666:
                             break
-                else:
-                    pass
             self.stop()
 
         def off(self, id):
@@ -240,18 +255,18 @@ class MyApp(QApplication):
         self.ClearDTCButton.setEnabled(True)
 
         def sensor_toggle(row, col):
-            if row < len(self.senprod.active):
-                state = self.senprod.active[row]
+            pid = int(self.sensors.getPid(row))
+            if pid < len(self.senprod.active):
+                state = self.senprod.active[pid]
             else:
                 return
 
             if   state == 0:
                 self.sensors.item(row,0).setText("X")
-                self.senprod.on(row)
+                self.senprod.on(pid)
             elif state == 1:
-                self.senprod.off(row)
+                self.senprod.off(pid)
                 self.sensors.item(row,0).setText("")
-                self.sensors.item(row,2).setText('-------')
             else:
                 debug("Incorrect sensor state")
 
@@ -267,17 +282,21 @@ class MyApp(QApplication):
         self.ClearDTCButton.setEnabled(False)
 
     def build_sensor_page(self):
-        self.sensors = self.MyListCtrl()
-        self.sensors.setColumnCount(3)
-        self.sensors.setHorizontalHeaderLabels(['Active','Sensor','Value'])
-        self.sensors.setColumnWidth(0,70)
-        self.sensors.setColumnWidth(1,250)
+        self.sensors = self.SensorList()
+        pid_column = 2
+        self.sensors.setColumnCount(5,pid_column)
+        self.sensors.setHorizontalHeaderLabels(['Active','PID', 'PID','Sensor','Value'])
+        self.sensors.setColumnWidth(0,55)
+        self.sensors.setColumnWidth(1,40)
+        self.sensors.setColumnWidth(3,250)
+        #Hide decimal PID value; it is used to identify sensor in case order is changed
 
         for i,obd_sensor in enumerate(obd_io.obd_sensors.SENSORS):
             s = obd_sensor.name
-            self.sensors.addTableRow(3, ['', s, ''])
-            self.sensors.item(i,1).setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
-            self.sensors.item(i,0).setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+            pid_hex = obd_sensor.cmd[-2:]
+            pid_dec = int(pid_hex,16)
+            self.sensors.addTableRow(5, ['','$' + pid_hex, str(pid_dec), s, ''])
+            self.sensors.item(i,3).setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
             self.sensors.setRowHidden(i, True)
 
         sensorPage = self.MyPanel(self.sensors)
@@ -475,8 +494,9 @@ See the GNU General Public License for more details.</p>
         HelpAboutDlg.setTextFormat(Qt.RichText)
         HelpAboutDlg.exec()
 
-    def OnResult(self,event):
-        self.sensors.item(event[0], event[1]).setText(event[2])
+    def OnResult(self,pid,column,data):
+        row = self.sensors.pid_lookup[str(pid)]
+        self.sensors.item(row, column).setText(data)
 
     def OnStatus(self,event):
         if event[0] == 666: #signal, that connection falied
