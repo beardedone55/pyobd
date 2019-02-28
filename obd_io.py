@@ -342,8 +342,8 @@ class OBDPort:
 
     # return string of sensor name and value from sensor index
     def sensor(self , sensor_index, ecu = None, mode = None, sensors = obd_sensors.SENSORS):
-        """Returns 3-tuple of given sensors. 3-tuple consists of
-         (Sensor Name (string), Sensor Value (string), Sensor Unit (string) ) """
+    """Returns 3-tuple of given sensors. 3-tuple consists of
+     (Sensor Name (string), Sensor Value (string), Sensor Unit (string) ) """
         sensor = sensors[sensor_index]
         cmd = sensor.cmd
         if mode is not None:
@@ -354,6 +354,9 @@ class OBDPort:
         return (sensor.name,r, sensor.unit)
 
     def get_sensors(self, sensor_index_list, ecu = None, mode = '01', sensors = obd_sensors.SENSORS):
+    """Returns dictionary of 3-tuples of given sensors. Each 3-tuple consists of
+     (Sensor Name (string), Sensor Value (string), Sensor Unit (string) )
+     the dictionary key for each 3-tuple is the PID as an integer"""
         retVal = {}
         sil = list(sensor_index_list)
         if self.prot_is_CAN and ecu is not None:
@@ -372,13 +375,17 @@ class OBDPort:
                         res = res[1:]
                         while len(res) > 0:
                             pid = res[0] #PID
-                            data = res[1:5] #A to D
-                            data = ''.join(data)
+                            res = res[1:]
                             i = cmd_dict[pid]
                             sensor = sensors[i]
+                            #data length is depdendent on PID
+                            numBytes = sensor.length
+                            #Get data bytes from bit stream and pack into string
+                            data = ''.join(res[:numBytes])
+                            #Calculate value using scaling function
                             data = sensor.value(data)
                             retVal[i] = (sensor.name, data, sensor.unit)
-                            res = res[5:] #goto next result
+                            res = res[numBytes:] #goto next result
 
                 sil = sil[6:] #Remove last 6
 

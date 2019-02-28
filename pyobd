@@ -60,11 +60,12 @@ ID_HELP_ORDER = 510
 class MyApp(QApplication):
 
     StatusEvent = pyqtSignal(list)
-    ResultEvent = pyqtSignal(int, int, str)
+    ResultEvent = pyqtSignal(str,int, int, str)
     DebugEvent = pyqtSignal(int,str)
     TestEvent = pyqtSignal(list)
     DTCEvent = pyqtSignal(list)
     DTCClearEvent = pyqtSignal(int)
+    SensorProducerReady = pyqtSignal()
 
     def __init__(self, myArgs):
         super().__init__(myArgs)
@@ -110,9 +111,11 @@ class MyApp(QApplication):
             self.sortItems(column, header.sortIndicatorOrder())
 
     class SensorList(MyListCtrl):
-        def __init__(self):
+        def __init__(self, ecu):
             super().__init__()
             self.pid_lookup = {}
+            self.senprod = None
+            self.ecu = ecu
 
         def addTableRow(self, rowSize, data):
             super().addTableRow(rowSize, data, alignment=Qt.AlignHCenter)
@@ -133,12 +136,27 @@ class MyApp(QApplication):
         def getPid(self, row):
             return self.item(row, self.pid_column).text()
 
+        def setSensorThread(self,senprod):
+            self.senprod = senprod
+
+        def sensor_toggle(self, row, col):
+            pid = int(self.getPid(row))
+            ecu = self.ecu
+
+            if self.item(row,0).text() != 'X':
+                self.item(row,0).setText("X")
+                self.senprod.signals.sensorOnEvent.emit(pid,ecu)
+            else:
+                self.senprod.signals.sensorOffEvent.emit(pid,ecu)
+                self.item(row,0).setText("")
+
     #Add a Widget to a panel with a layout and return the Panel
     class MyPanel(QWidget):
-        def __init__(self, widget):
+        def __init__(self, widget=None):
             super().__init__()
             layout = QVBoxLayout()
-            layout.addWidget(widget)
+            if widget is not None:
+                layout.addWidget(widget)
             self.setLayout(layout)
 
     class MyNumberInput(QLineEdit):
@@ -150,100 +168,105 @@ class MyApp(QApplication):
             self.setValidator(validator)
 
     class sensorProducer(QThread):
-        def __init__(self, _notify_window,portName,baudrate,SERTIMEOUT,RECONNATTEMPTS,_nb):
-            from queue import Queue
-            self.portName = portName
-            self.baudrate = baudrate
-            self.RECONNATTEMPTS=RECONNATTEMPTS
-            self.SERTIMEOUT=SERTIMEOUT
-            self.port = None
+        class CustomSlots(QObject):
+            sensorTabEvent = pyqtSignal(str)
+            sensorOnEvent = pyqtSignal(int,str)
+            sensorOffEvent = pyqtSignal(int,str)
+            sensorAllOffEvent = pyqtSignal(str)
+
+            def __init__(self):
+                super().__init__()
+
+            def connectSlots(self, parent):
+                self.sensorOnEvent.connect(parent.on)
+                self.sensorOffEvent.connect(parent.off)
+                self.sensorAllOffEvent.connect(parent.all_off)
+                self.sensorTabEvent.connect(parent.selectEcu)
+
+            def disconnectSlots(self):
+                self.sensorOnEvent.disconnect()
+                self.sensorOffEvent.disconnect()
+                self.sensorAllOffEvent.disconnect()
+                self.sensorTabEvent.disconnect()
+
+        def __init__(self,_notify_window):
             self._notify_window=_notify_window
-            self._nb=_nb
-            self.active = []
+            self.active = {}
             super().__init__ ()
 
-        def initCommunication(self):
-            self.port = obd_io.OBDPort(self.portName,self.baudrate,self._notify_window,self.SERTIMEOUT,self.RECONNATTEMPTS)
-
-            if self.port.State==0: #Cant open serial port
-                return None
-
-            self.active   = []
-
-            self.active.append(0); #PID 0 is always supported
-
-            self._notify_window.ResultEvent.emit(0,0,"")
-            self._notify_window.DebugEvent.emit(1,"Communication initialized...")
-
-            if len(self.port.ecu_addresses) > 0:
-                ecu = self.port.ecu_addresses[0]
-                supp = self.port.get_supported(ecu) #read supported mode $01
-                                                    #PIDS of 1st ECU that responds
-                for i, supported in enumerate(supp,1):
-                    self.active.append(0)
-                    if supported == "1": #Unhide Row if supported
-                        self._notify_window.ResultEvent.emit(i,0,"")
-                        self._notify_window.sensors.setRowHidden(i,False)
-                    else:
-                        self._notify_window.sensors.setRowHidden(i,True)
-            return "OK"
-
         def run(self):
-            self._notify_window.StatusEvent.emit([0,1,"Connecting...."])
-            self.initCommunication()
-            if self.port.State==0: #cant connect, exit thread
-                self.stop()
-                self._notify_window.StatusEvent.emit([666]) #signal apl, that communication was disconnected
-                self._notify_window.StatusEvent.emit([0,1,"Error. Cannot connect..."])
-                return None
 
-            self._notify_window.StatusEvent.emit([0,1,"Connected"])
-            self._notify_window.StatusEvent.emit([2,1,self.port.ELMver])
-            self._notify_window.StatusEvent.emit([1,1,self.port.protocol])
-            prevstate=-1
-            curstate=-1
+            self.signals = self.CustomSlots()
+            
+            self.ecu = None
 
-            if len(self.port.ecu_addresses) > 0:
-                ecu = self.port.ecu_addresses[0]
+            self.signals.connectSlots(self)
+
+            #Thread is ready to take events
+            self._notify_window.SensorProducerReady.emit()
+
+            port = self._notify_window.port
+
+            while not self.isInterruptionRequested():
+                QCoreApplication.processEvents()
+                ecu = self.ecu
+                if ecu is not None and len(self.active[ecu]) > 0:
+                    results = port.get_sensors(self.active[ecu], ecu)
+                    for pid,s in results.items():
+                        self._notify_window.ResultEvent.emit(ecu,pid,4,"%s (%s)" % (s[1], s[2]))
+
+            self.signals.disconnectSlots()
+
+        def off(self, pid, ecu):
+            if ecu not in self.active:
+                self.active[ecu] = []
+
+            if pid in self.active[ecu]:
+                self.active[ecu].remove(pid)
+
+        def on(self, pid, ecu):
+            if ecu not in self.active:
+                self.active[ecu] = []
+
+            if pid not in self.active[ecu]:
+                self.active[ecu].append(pid)
+
+        def all_off(self, ecu):
+            self.active[ecu] = []
+
+        def selectEcu(self, ecu):
+            if ecu == 'None':
+                self.ecu = None
             else:
-                ecu = None
-
-            while self._notify_window.ThreadControl!=666 and ecu is not None:
-                prevstate=curstate
-                curstate=self._nb.currentIndex()
-                if curstate==2 and ecu is not None: #show sensor tab
-                    for i,active in enumerate(self.active[3:],3):
-                        if active:
-                            s = self.port.sensor(i,ecu)
-                            self._notify_window.ResultEvent.emit(i,4,"%s (%s)" % (s[1], s[2]))
-                        if self._notify_window.ThreadControl==666:
-                            break
-            self.stop()
-
-        def off(self, id):
-            if id >= 0 and id < len(self.active):
-                self.active[id] = 0
-            else:
-                debug("Invalid sensor id")
-        def on(self, id):
-            if id >= 0 and id < len(self.active):
-                self.active[id] = 1
-            else:
-                debug("Invalid sensor id")
-
-        def all_off(self):
-            self.active = [0] * len(self.active)
-
-        def all_on(self):
-            self.active = [1] * len(self.active)
-
-        def stop(self):
-            if self.port != None: #if stop is called before any connection port is not defined (and not connected )
-                self.port.close()
-            self._notify_window.StatusEvent.emit([0,1,"Disconnected"])
-            self._notify_window.StatusEvent.emit([2,1,"----"])
+                if ecu not in self.active:
+                    self.active[ecu] = []
+                self.ecu = ecu
 
   #class producer end
+
+    def stop(self):
+        if self.port != None: #if stop is called before any connection port is not defined (and not connected )
+            self.port.close()
+        self.StatusEvent.emit([0,1,"Disconnected"])
+        self.StatusEvent.emit([2,1,"----"])
+
+    def initCommunication(self):
+        self.StatusEvent.emit([0,1,"Connecting...."])
+        self.port = obd_io.OBDPort(self.COMPORT,self.BAUDRATE,self,self.SERTIMEOUT,self.RECONNATTEMPTS)
+
+        if self.port.State==0: #Cant open serial port
+            return None
+
+        self.DebugEvent.emit(1,"Communication initialized...")
+
+        if len(self.port.ecu_addresses) > 0:
+            for ecu in self.port.ecu_addresses:
+                supp = self.port.get_supported(ecu) #read supported mode $01
+                                                    #PIDS of 1st ECU that responds
+                ecuName = 'ECU' + str(self.port.getEcuNum(ecu))
+                self.add_sensor_table(ecuName, ecu, supp)
+
+        return "OK"
 
     def sensor_control_on(self): #after connection enable few buttons
         self.configAction.setEnabled(False)
@@ -254,23 +277,8 @@ class MyApp(QApplication):
         self.GetDTCButton.setEnabled(True)
         self.ClearDTCButton.setEnabled(True)
 
-        def sensor_toggle(row, col):
-            pid = int(self.sensors.getPid(row))
-            if pid < len(self.senprod.active):
-                state = self.senprod.active[pid]
-            else:
-                return
-
-            if   state == 0:
-                self.sensors.item(row,0).setText("X")
-                self.senprod.on(pid)
-            elif state == 1:
-                self.senprod.off(pid)
-                self.sensors.item(row,0).setText("")
-            else:
-                debug("Incorrect sensor state")
-
-        self.sensors.cellClicked.connect(sensor_toggle)
+        for sensorTable in self.sensorTables.values():
+           sensorTable.cellClicked.connect(sensorTable.sensor_toggle)
 
     def sensor_control_off(self): #after disconnect disable fer buttons
         self.getDTCAction.setEnabled(False)
@@ -280,27 +288,35 @@ class MyApp(QApplication):
         self.disconnectAction.setEnabled(False)
         self.GetDTCButton.setEnabled(False)
         self.ClearDTCButton.setEnabled(False)
+        for sensorTable in self.sensorTables.values():
+            sensorTable.cellClicked.disconnect()
+
+    def add_sensor_table(self, title, ecu, supp):
+        sensorTable = self.SensorList(ecu)
+        self.sensorTables[ecu] = sensorTable
+        pid_column = 2
+        sensorTable.setColumnCount(5,pid_column)
+        sensorTable.setHorizontalHeaderLabels(['Active','PID', 'PID','Sensor','Value'])
+        sensorTable.setColumnWidth(0,55)
+        sensorTable.setColumnWidth(1,40)
+        sensorTable.setColumnWidth(3,250)
+        for i, supported in enumerate(supp,1):
+            if supported == '1':
+                obd_sensor = obd_io.obd_sensors.SENSORS[i]
+                s = obd_sensor.name
+                pid_hex = obd_sensor.cmd[-2:]
+                pid_dec = int(pid_hex,16)
+                row = sensorTable.rowCount()
+                sensorTable.addTableRow(5, ['','$' + pid_hex, str(pid_dec), s, ''])
+                sensorTable.item(row,3).setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
+
+        self.sensorTabs.addTab(sensorTable, title)
 
     def build_sensor_page(self):
-        self.sensors = self.SensorList()
-        pid_column = 2
-        self.sensors.setColumnCount(5,pid_column)
-        self.sensors.setHorizontalHeaderLabels(['Active','PID', 'PID','Sensor','Value'])
-        self.sensors.setColumnWidth(0,55)
-        self.sensors.setColumnWidth(1,40)
-        self.sensors.setColumnWidth(3,250)
-        #Hide decimal PID value; it is used to identify sensor in case order is changed
-
-        for i,obd_sensor in enumerate(obd_io.obd_sensors.SENSORS):
-            s = obd_sensor.name
-            pid_hex = obd_sensor.cmd[-2:]
-            pid_dec = int(pid_hex,16)
-            self.sensors.addTableRow(5, ['','$' + pid_hex, str(pid_dec), s, ''])
-            self.sensors.item(i,3).setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
-            self.sensors.setRowHidden(i, True)
-
-        sensorPage = self.MyPanel(self.sensors)
-        self.nb.addTab(sensorPage, "Sensors")
+        self.sensorTabs = QTabWidget()
+        self.sensorTabs.tabBarClicked.connect(self.sensorTabClicked)
+        sensorPage = self.MyPanel(self.sensorTabs)
+        self.nb.addTab(sensorPage, "Live Data")
 
     def build_DTC_page(self):
         self.DTCpanel = QWidget()
@@ -336,6 +352,8 @@ class MyApp(QApplication):
         self.BAUDRATE = 0
         self.senprod = None
         self.DEBUGLEVEL = 0 #debug everthing
+        self.sensorTables = {}
+        self.port = None
 
         def CreateMenuItem(ItemName, ToolTipText, ItemTrigger):
             menuItemAction = QAction(ItemName)
@@ -379,9 +397,10 @@ class MyApp(QApplication):
         # Main notebook frames
 
         self.nb = QTabWidget(frame)
+        self.nb.tabBarClicked.connect(self.tabClicked)
         self.frame.setCentralWidget(self.MyPanel(self.nb))
 
-        self.status = self.MyListCtrl()
+        self.status = self.MyListCtrl(sortable=False)
         self.status.setColumnCount(2)
         self.status.setHorizontalHeaderLabels(['Description','Value'])
         self.status.setColumnWidth(0,100)
@@ -408,7 +427,7 @@ class MyApp(QApplication):
 
         self.build_DTC_page()
 
-        self.trace = self.MyListCtrl()
+        self.trace = self.MyListCtrl(sortable=False)
         self.trace.setColumnCount(2)
         self.trace.setHorizontalHeaderLabels(['Level','Message'])
         self.trace.setColumnWidth(0,40)
@@ -463,6 +482,21 @@ class MyApp(QApplication):
 
         return True
 
+    def tabClicked(self, tabNum):
+        if self.senprod is not None:
+            if self.sensorTabs in self.nb.widget(tabNum).children():
+                self.sensorTabClicked(self.sensorTabs.currentIndex())
+            else:
+                self.senprod.signals.sensorTabEvent.emit('None')
+
+    def sensorTabClicked(self, tabNum):
+        for sensorTable in self.sensorTables.values():
+            if sensorTable is self.sensorTabs.widget(tabNum):
+                self.senprod.signals.sensorTabEvent.emit(sensorTable.ecu)
+                break
+        else:
+            self.senprod.signals.sensorTabEvent.emit('None')
+
     def OnHelpVisit(self):
         webbrowser.open("http://www.obdtester.com/pyobd")
 
@@ -494,9 +528,11 @@ See the GNU General Public License for more details.</p>
         HelpAboutDlg.setTextFormat(Qt.RichText)
         HelpAboutDlg.exec()
 
-    def OnResult(self,pid,column,data):
-        row = self.sensors.pid_lookup[str(pid)]
-        self.sensors.item(row, column).setText(data)
+    def OnResult(self,ecu,pid,column,data):
+        if ecu in self.sensorTables:
+            sensorTable = self.sensorTables[ecu]
+            row = sensorTable.pid_lookup[str(pid)]
+            sensorTable.item(row, column).setText(data)
 
     def OnStatus(self,event):
         if event[0] == 666: #signal, that connection falied
@@ -530,13 +566,29 @@ See the GNU General Public License for more details.</p>
         self.sensor_control_off()
 
     def OpenPort(self):
-        if self.senprod: # signal current producers to finish
-            self.senprod.stop()
-        self.ThreadControl = 0
-        self.senprod = self.sensorProducer(self,self.COMPORT,self.BAUDRATE, self.SERTIMEOUT,self.RECONNATTEMPTS,self.nb)
-        self.senprod.start()
+        self.nb.setCurrentWidget(self.status.parentWidget())
+        self.OnStatus([0,1,"Connecting....."])
+        self.setOverrideCursor(Qt.WaitCursor)
+        QApplication.processEvents()
+        self.stop()
+        if self.senprod is not None:
+            self.senprod.requestInterruption()
+            self.senprod.wait()
+        self.sensorTables = {}
+        self.sensorTabs.clear()
+        self.SensorProducerReady.connect(self.sensor_control_on)
+        if self.initCommunication() == 'OK':
+            self.senprod = self.sensorProducer(self)
+            self.StatusEvent.emit([0,1,"Connected"])
+            self.StatusEvent.emit([2,1,self.port.ELMver])
+            self.StatusEvent.emit([1,1,self.port.protocol])
+            for sensorTable in self.sensorTables.values():
+                sensorTable.setSensorThread(self.senprod)
+            self.senprod.start()
+        else:
+            self.StatusEvent.emit([0,1,"Connection Failed!!!!"])
 
-        self.sensor_control_on()
+        self.restoreOverrideCursor()
 
     def onTestDTC(self):
         self.DTCClearEvent.emit(0) #clear list
@@ -545,13 +597,13 @@ See the GNU General Public License for more details.</p>
 
     def GetDTC(self):
         self.DTCClearEvent.emit(0) #clear list
-        DTCCodes=self.senprod.port.get_dtc()
+        DTCCodes=self.port.get_dtc()
 
         if DTCCodes is None: #Communication Issue
             self.OnDisconnect()
 
         for ecu in DTCCodes:
-            self.DTCEvent.emit(['DTCs from ECU%d' % self.senprod.port.getEcuNum(ecu)])
+            self.DTCEvent.emit(['DTCs from ECU%d' % self.port.getEcuNum(ecu)])
             if len(DTCCodes[ecu]) == 0:
                 self.DTCEvent.emit(["No DTC codes (codes cleared)"])
             for code in DTCCodes[ecu]:
@@ -603,7 +655,7 @@ See the GNU General Public License for more details.</p>
             self.ClearDTC()
 
     def ClearDTC(self):
-        self.senprod.port.clear_dtc()
+        self.port.clear_dtc()
         self.DTCClearEvent.emit(0) #clear list
         self.nb.setCurrentWidget(self.DTCpanel.parentWidget())
 
