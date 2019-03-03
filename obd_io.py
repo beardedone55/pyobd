@@ -342,8 +342,8 @@ class OBDPort:
 
     # return string of sensor name and value from sensor index
     def sensor(self , sensor_index, ecu = None, mode = None, sensors = obd_sensors.SENSORS):
-    """Returns 3-tuple of given sensors. 3-tuple consists of
-     (Sensor Name (string), Sensor Value (string), Sensor Unit (string) ) """
+        """Returns 3-tuple of given sensors. 3-tuple consists of
+         (Sensor Name (string), Sensor Value (string), Sensor Unit (string) ) """
         sensor = sensors[sensor_index]
         cmd = sensor.cmd
         if mode is not None:
@@ -354,9 +354,9 @@ class OBDPort:
         return (sensor.name,r, sensor.unit)
 
     def get_sensors(self, sensor_index_list, ecu = None, mode = '01', sensors = obd_sensors.SENSORS):
-    """Returns dictionary of 3-tuples of given sensors. Each 3-tuple consists of
-     (Sensor Name (string), Sensor Value (string), Sensor Unit (string) )
-     the dictionary key for each 3-tuple is the PID as an integer"""
+        """Returns dictionary of 3-tuples of given sensors. Each 3-tuple consists of
+         (Sensor Name (string), Sensor Value (string), Sensor Unit (string) )
+         the dictionary key for each 3-tuple is the PID as an integer"""
         retVal = {}
         sil = list(sensor_index_list)
         if self.prot_is_CAN and ecu is not None:
@@ -395,16 +395,78 @@ class OBDPort:
 
         return retVal
 
-    def get_supported(self, ecu, mode = '01', sensors = obd_sensors.SENSORS):
-        data = self.get_sensors(obd_sensors.SUPPORTED_PIDS, ecu, mode, sensors)
+    def get_supported(self, ecu, mode = '01', supported_pids = obd_sensors.SUPPORTED_PIDS):
+        data = self.get_sensors(supported_pids, ecu, mode)
         retVal = ''
-        for i in obd_sensors.SUPPORTED_PIDS:
+        for i in supported_pids:
             if i in data:
                 retVal += data[i][1]
             else:
                 retVal += '0' * 32 #Assume not supported (32 zeroes)
 
         return retVal
+
+    def get_vin(self, ecu):
+        VEHICLE_INFO_MODE = '09'
+        VEHICLE_INFO_MODE_RESPONSE = '49'
+        VEHICLE_INFO_SUPPORTED_PIDS = [0]
+        VIN_PID = '02'
+        VIN_SUPPORTED_INDEX = 1
+        GET_VIN_CMD = VEHICLE_INFO_MODE + VIN_PID
+
+        supp = self.get_supported(ecu, VEHICLE_INFO_MODE, VEHICLE_INFO_SUPPORTED_PIDS)
+        if supp[VIN_SUPPORTED_INDEX] == '0':
+            return ''
+
+        self.send_command(GET_VIN_CMD)
+        res = self.get_obd_data_bytes()
+
+        if res is None or ecu not in res:
+            return '' #Connection Lost
+
+        res = res[ecu]
+
+        if self.prot_is_CAN:
+            if len(res) < 20 or res[:3] != [VEHICLE_INFO_MODE_RESPONSE, VIN_PID, '01']:
+                print(res)
+                print(res[:3])
+                code = ''.join(res[:3])
+                self._notify_window.DebugEvent.emit(1,'Unexpected Response to GET_VIN (%s)' % (code))
+                return ''
+
+            #Convert returned ascii byte codes to a string
+            return bytes.fromhex(''.join(res[3:])).decode()
+
+        else:
+            #I can't test this path.  I think it's right based on the spec....
+            #I also took a shortcut, assuming mode $09 PID $01 would return '05' (it should).
+            if len(res) < 35:
+                self._notify_window.DebugEvent.emit(1,'Unexpected Response Length to GET_VIN (%d)' % len(res))
+            i = 0
+            retVal = ''
+            while len(res) > 0:
+                i += 1
+                message_count = '%02X' % i
+                code = res[:7]
+                if code[:3] != [VEHICLE_INFO_MODE_RESPONSE, VIN_PID, message_count]:
+                    code = ''.join(code[:3])
+                    self._notify_window.DebugEvent.emit(1,'Unexpected Response to GET_VIN (%s)' % (code))
+                    return ''
+
+                if i == 1:
+                    if code[3:6] != ['00','00','00']:
+                        code = ''.join(code[3:6])
+                        self._notify_window.DebugEvent.emit(1,'Unexpected Pad Bytes to GET_VIN (%s)' % (code))
+                        return ''
+                    #strip pad bytes
+                    code = code[6:]
+                else:
+                    code = code[3:]
+                #Convert returned ascii byte codes to a string
+                retVal += bytes.fromhex(''.join(code)).decode()
+                res = res[7:]
+
+            return retVal
 
     def sensor_names(self):
         """Internal use only: not a public interface"""

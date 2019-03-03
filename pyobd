@@ -259,12 +259,19 @@ class MyApp(QApplication):
 
         self.DebugEvent.emit(1,"Communication initialized...")
 
+        vinList = []
+
         if len(self.port.ecu_addresses) > 0:
             for ecu in self.port.ecu_addresses:
                 supp = self.port.get_supported(ecu) #read supported mode $01
-                                                    #PIDS of 1st ECU that responds
+                                                    #PIDS of each ECU that responds
                 ecuName = 'ECU' + str(self.port.getEcuNum(ecu))
                 self.add_sensor_table(ecuName, ecu, supp)
+                vin = self.port.get_vin(ecu)
+                if vin != '':
+                    vinList.append(vin)
+
+            self.StatusEvent.emit([4,1,','.join(vinList)])
 
         return "OK"
 
@@ -403,11 +410,12 @@ class MyApp(QApplication):
         self.status = self.MyListCtrl(sortable=False)
         self.status.setColumnCount(2)
         self.status.setHorizontalHeaderLabels(['Description','Value'])
-        self.status.setColumnWidth(0,100)
+        self.status.setColumnWidth(0,200)
         self.status.addTableRow(2, ['Link State', 'Disconnected'])
         self.status.addTableRow(2, ['Protocol', '---'])
         self.status.addTableRow(2, ['Cable Version', '---'])
         self.status.addTableRow(2, ['COM Port', self.COMPORT])
+        self.status.addTableRow(2, ['Vehicle Identification Number', '-----------------'])
 
         statusPanel  = self.MyPanel(self.status)
         self.nb.addTab(statusPanel, "Status")
