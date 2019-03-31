@@ -24,8 +24,7 @@
 ############################################################################
 
 def hex_to_int(str):
-    i = eval("0x" + str, {}, {})
-    return i
+    return int(str,16)
 
 def maf(code):
     code = hex_to_int(code[:4])

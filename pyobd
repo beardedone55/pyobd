@@ -150,6 +150,29 @@ class MyApp(QApplication):
                 self.senprod.signals.sensorOffEvent.emit(pid,ecu)
                 self.item(row,0).setText("")
 
+    class TestList(MyListCtrl):
+        def __init__(self):
+            super().__init__()
+            self.setColumnCount(2)
+            self.setHorizontalHeaderLabels(['Built-In Test Description','Status'])
+            self.horizontalHeader().setStretchLastSection(False)
+            self.horizontalHeader().setSectionResizeMode(0,QHeaderView.Stretch)
+            self.horizontalHeader().setSectionResizeMode(1,QHeaderView.ResizeToContents)
+            self.testStatusItems = {}
+
+            for i,description in enumerate(ptest): #fill MODE 1 PID 1 test description
+                self.addTableRow(1, [description])
+                testStatusItem = QLabel()
+                testStatusItem.setAlignment(Qt.AlignCenter)
+                self.setCellWidget(i,1,testStatusItem)
+                self.testStatusItems[description] = testStatusItem
+
+        def setStatusIcon(self, row, icon):
+            self.testStatusItems[self.item(row,0).text()].setPixmap(icon)
+
+        def setIconForTest(self, test, icon):
+            self.testStatusItems[test].setPixmap(icon)
+
     #Add a Widget to a panel with a layout and return the Panel
     class MyPanel(QWidget):
         def __init__(self, widget=None):
@@ -362,6 +385,9 @@ class MyApp(QApplication):
         self.sensorTables = {}
         self.port = None
 
+        self.completeIcon = QPixmap('icons/check-icon2.png')
+        self.failedIcon = QPixmap('icons/delete-icon.png')
+
         def CreateMenuItem(ItemName, ToolTipText, ItemTrigger):
             menuItemAction = QAction(ItemName)
             menuItemAction.setStatusTip(ToolTipText)
@@ -420,16 +446,12 @@ class MyApp(QApplication):
         statusPanel  = self.MyPanel(self.status)
         self.nb.addTab(statusPanel, "Status")
 
-        self.OBDTests = self.MyListCtrl()
-        self.OBDTests.setColumnCount(2)
-        self.OBDTests.setHorizontalHeaderLabels(['Description','Value'])
-        self.OBDTests.setColumnWidth(0,200)
+        self.OBDTests = self.TestList()
 
         OBDTestPanel = self.MyPanel(self.OBDTests)
         self.nb.addTab(OBDTestPanel, "Tests")
 
-        for i in ptest: #fill MODE 1 PID 1 test description
-            self.OBDTests.addTableRow(2, [i,'---'])
+#        self.OBDTests.setStatusIcon(1,self.completeIcon)
 
         self.build_sensor_page()
 
