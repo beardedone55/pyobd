@@ -15,7 +15,7 @@ SENSORS	obd_sensors.py	/^SENSORS = [$/;"	v
 SUPPORTED_PIDS	obd_sensors.py	/^SUPPORTED_PIDS = (0, 0x20, 0x40, 0x60, 0x80)$/;"	v
 Sensor	obd_sensors.py	/^class Sensor:$/;"	c
 __init__	obd_io.py	/^    def __init__(self,portnum,baudrate,_notify_window,SERTIMEOUT,RECONNATTEMPTS):$/;"	m	class:OBDPort
-__init__	obd_sensors.py	/^    def __init__(self,sensorName, sensorcommand, sensorValueFunction, u):$/;"	m	class:Sensor
+__init__	obd_sensors.py	/^    def __init__(self,sensorName, sensorcommand, sensorValueFunction, u, length):$/;"	m	class:Sensor
 abs_load_percent	obd_sensors.py	/^def abs_load_percent(code):$/;"	f
 abs_vapor_pres	obd_sensors.py	/^def abs_vapor_pres(code):$/;"	f
 clear_dtc	obd_io.py	/^    def clear_dtc(self):$/;"	m	class:OBDPort
@@ -36,10 +36,12 @@ get_obd_data_bytes	obd_io.py	/^    def get_obd_data_bytes(self):$/;"	m	class:OBD
 get_result	obd_io.py	/^    def get_result(self):$/;"	m	class:OBDPort
 get_sensor_value	obd_io.py	/^    def get_sensor_value(self,sensor,ecu):$/;"	m	class:OBDPort
 get_sensors	obd_io.py	/^    def get_sensors(self, sensor_index_list, ecu = None, mode = '01', sensors = obd_sensors.SENSORS):$/;"	m	class:OBDPort
-get_supported	obd_io.py	/^    def get_supported(self, ecu, mode = '01', sensors = obd_sensors.SENSORS):$/;"	m	class:OBDPort
+get_supported	obd_io.py	/^    def get_supported(self, ecu, mode = '01', supported_pids = obd_sensors.SUPPORTED_PIDS):$/;"	m	class:OBDPort
+get_tests	obd_io.py	/^    def get_tests(self, ecu, test_pid = 0x01):$/;"	m	class:OBDPort
 get_tests_MIL	obd_io.py	/^    def get_tests_MIL(self):$/;"	m	class:OBDPort
-hex_to_bitstring	obd_sensors.py	/^def hex_to_bitstring(str):$/;"	f
-hex_to_int	obd_sensors.py	/^def hex_to_int(str):$/;"	f
+get_vin	obd_io.py	/^    def get_vin(self, ecu):$/;"	m	class:OBDPort
+hex_to_bitstring	obd_sensors.py	/^def hex_to_bitstring(hexstr):$/;"	f
+hex_to_int	obd_sensors.py	/^def hex_to_int(hexstr):$/;"	f
 injection_timing	obd_sensors.py	/^def injection_timing(code):$/;"	f
 intake_m_pres	obd_sensors.py	/^def intake_m_pres(code): # in kPa$/;"	f
 interpret_result	obd_io.py	/^    def interpret_result(self,data,ecu):$/;"	m	class:OBDPort
@@ -65,5 +67,6 @@ sensor_voltage	obd_sensors.py	/^def sensor_voltage(code):$/;"	f
 speed	obd_sensors.py	/^def speed(code):$/;"	f
 temp	obd_sensors.py	/^def temp(code):$/;"	f
 test	obd_sensors.py	/^def test():$/;"	f
+testResults	obd_sensors.py	/^    def testResults(results, keys, supported, completions):$/;"	f	function:dtc_decrypt
 throttle_pos	obd_sensors.py	/^def throttle_pos(code):$/;"	f
 timing_advance	obd_sensors.py	/^def timing_advance(code):$/;"	f

@@ -23,8 +23,10 @@
 # along with pyOBD; if not, see https://www.gnu.org/licenses/.
 ############################################################################
 
-def hex_to_int(str):
-    return int(str,16)
+from obd2_codes import ptest
+
+def hex_to_int(hexstr):
+    return int(hexstr,16)
 
 def maf(code):
     code = hex_to_int(code[:4])
@@ -68,7 +70,7 @@ def abs_load_percent(code):
 
 def timing_advance(code):
     code = hex_to_int(code[:4])
-    return '%3.1f' % (code - 128) / 2.0
+    return '%3.1f' % ((code - 128) / 2.0)
 
 def injection_timing(code):
     code = hex_to_int(code[:4])
@@ -94,31 +96,33 @@ def fuel_trim_percent(code):
 def dtc_decrypt(code):
     #first byte is byte after PID and without spaces
     num = hex_to_int(code[:2]) #A byte
-    res = []
+    res = {}
 
     if num & 0x80: # is mil light on
-        mil = 1
+        res[ptest[1]] = 1
     else:
-        mil = 0
+        res[ptest[1]] = 0
 
     # bit 0-6 are the number of dtc's.
-    num = num & 0x7f
+    res[ptest[0]] = num & 0x7f
 
-    res.append(num)
-    res.append(mil)
+    def testResults(results, keys, supported, completions):
+        for i,test in enumerate(keys):
+            if (supported >> i) & 1:
+                if (completions >> i) & 1:
+                    results[test] = -1 #Test Failed
+                else:
+                    results[test] = 1 #Test Complete
+            else:
+                results[test] = 0 #Test N/A
 
-    numB = hex_to_int(code[2:4]) #B byte
-
-    for i in range(0,3):
-        res.append(((numB>>i)&0x01)+((numB>>(3+i))&0x02))
+    #B Byte
+    testResults(res, ptest[2:5], hex_to_int(code[3]), hex_to_int(code[2]))
 
     numC = hex_to_int(code[4:6]) #C byte
     numD = hex_to_int(code[6:8]) #D byte
 
-    for i in range(0,7):
-        res.append(((numC>>i)&0x01)+(((numD>>i)&0x01)<<1))
-
-    res.append(((numD>>7)&0x01)) #EGR SystemC7  bit of different
+    testResults(res, ptest[5:13], numC, numD)
 
     return res
 
@@ -167,29 +171,9 @@ def abs_vapor_pres(code):
     code = hex_to_int(code[0:4])
     return '%4.5f' % (code * 0.005 * 0.14504)
 
-def hex_to_bitstring(str):
-    bitstring = ""
-    for i in str:
-        # silly type safety, we don't want to eval random stuff
-        if type(i) == type(''):
-            v = eval("0x%s" % i)
-            if v & 8 :
-                bitstring += '1'
-            else:
-                bitstring += '0'
-            if v & 4:
-                bitstring += '1'
-            else:
-                bitstring += '0'
-            if v & 2:
-                bitstring += '1'
-            else:
-                bitstring += '0'
-            if v & 1:
-                bitstring += '1'
-            else:
-                bitstring += '0'
-    return bitstring
+def hex_to_bitstring(hexstr):
+    retVal = bin(int(hexstr,16))[2:]
+    return retVal.zfill(len(hexstr)*4)
 
 def km_to_mi(code):
     return '%6.1f' % (hex_to_int(code[:4]) * 0.6)
@@ -224,10 +208,10 @@ SENSORS = [
     Sensor("      Fuel System Status", "0103", ol_cl             ,"",2     ),
     Sensor("   Calculated Load Value", "0104", percent_scale     ,"",1     ),
     Sensor("     Coolant Temperature", "0105", temp              ,"C",1    ),
-    Sensor("Short Term Fuel Trim - Bank 1", "0106", fuel_trim_percent ,"%",2 ),
-    Sensor("Long Term Fuel Trim - Bank 1", "0107", fuel_trim_percent ,"%",2  ),
-    Sensor("Short Term Fuel Trim - Bank 2", "0108", fuel_trim_percent ,"%",2 ),
-    Sensor("Long Term Fuel Trim - Bank 2", "0109", fuel_trim_percent ,"%",2  ),
+    Sensor("Short Term Fuel Trim - Bank 1", "0106", fuel_trim_percent ,"%",1 ),
+    Sensor("Long Term Fuel Trim - Bank 1", "0107", fuel_trim_percent ,"%",1  ),
+    Sensor("Short Term Fuel Trim - Bank 2", "0108", fuel_trim_percent ,"%",1 ),
+    Sensor("Long Term Fuel Trim - Bank 2", "0109", fuel_trim_percent ,"%",1  ),
     Sensor("      Fuel Rail Pressure", "010A", fuel_pres         ,"psi",1  ),
     Sensor("Intake Manifold Pressure", "010B", intake_m_pres     ,"psi",1  ),
     Sensor("              Engine RPM", "010C", rpm               ,"RPM",2  ),
@@ -247,7 +231,7 @@ SENSORS = [
     Sensor("        O2 Sensor: 2 - 3", "011A", sensor_voltage ,"V",2      ),
     Sensor("        O2 Sensor: 2 - 4", "011B", sensor_voltage ,"V",2      ),
     Sensor("         OBD Designation", "011C", cpass             ,"",1     ),
-    Sensor("  Location of O2 sensors", "011D", cpass             ,"",1     ),
+    Sensor("  Location of O2 sensors", "011D", hex_to_bitstring ,"",1     ),
     Sensor("        Aux input status", "011E", cpass             ,"" ,1    ),
     Sensor(" Time Since Engine Start", "011F", sec_to_min        ,"min",2  ),
     Sensor("          Supported PIDs", "0120", hex_to_bitstring  ,"",4     ),

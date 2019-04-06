@@ -31,6 +31,7 @@ from math import ceil
 import obd_sensors
 
 from obd_sensors import hex_to_int
+from obd2_codes import ptest
 
 GET_DTC_COMMAND   = "03"
 CLEAR_DTC_COMMAND = "04"
@@ -391,7 +392,7 @@ class OBDPort:
 
         else:
             for i in sensor_index_list:
-                retVal[i] = sensor(self, i, ecu, mode, sensors)
+                retVal[i] = self.sensor(i, ecu, mode, sensors)
 
         return retVal
 
@@ -404,7 +405,23 @@ class OBDPort:
             else:
                 retVal += '0' * 32 #Assume not supported (32 zeroes)
 
+        O2_SENSOR_POSITION_PID = 0x1D
+
+        #if PID $1D (O2 Position) is supported, we may have to adjust size of fuel trim data.
+        if retVal[O2_SENSOR_POSITION_PID - 1] == '1' and mode == '01':
+            res = self.sensor(O2_SENSOR_POSITION_PID, ecu)[1]
+            #Bank 4 Supported?
+            if res[0] == '1' or res[1] == '1':
+                SENSORS[8].length = 2
+                SENSORS[9].length = 2
+            #Bank 3 Supported?
+            if res[2] == '1' or res[3] == '1':
+                SENSORS[6].length = 2
+                SENSORS[7].length = 2
         return retVal
+
+    def get_tests(self, ecu, test_pid = 0x01):
+        return self.sensor(test_pid, ecu)[1]
 
     def get_vin(self, ecu):
         VEHICLE_INFO_MODE = '09'
@@ -428,8 +445,6 @@ class OBDPort:
 
         if self.prot_is_CAN:
             if len(res) < 20 or res[:3] != [VEHICLE_INFO_MODE_RESPONSE, VIN_PID, '01']:
-                print(res)
-                print(res[:3])
                 code = ''.join(res[:3])
                 self._notify_window.DebugEvent.emit(1,'Unexpected Response to GET_VIN (%s)' % (code))
                 return ''
@@ -544,8 +559,8 @@ class OBDPort:
         if r != 'NODATA' and r != 'NORESPONSE':
             #Each ECU may return different number of DTCs
             for ecu in r:
-                dtcNumber[ecu] = r[ecu][0]
-                mil[ecu] = r[ecu][1]
+                dtcNumber[ecu] = r[ecu][ptest[0]]
+                mil[ecu] = r[ecu][ptest[1]]
                 self._notify_window.DebugEvent.emit(1,'Number of stored DTC: %d' % dtcNumber[ecu])
 
             # Get Active DTCs

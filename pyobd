@@ -111,23 +111,44 @@ class MyApp(QApplication):
             self.sortItems(column, header.sortIndicatorOrder())
 
     class SensorList(MyListCtrl):
+
+        SENSOR_OFF = '1'
+        SENSOR_ON = '0'
+
         def __init__(self, ecu):
             super().__init__()
             self.pid_lookup = {}
             self.senprod = None
             self.ecu = ecu
+            icon_path = os.path.dirname(sys.argv[0]) + '/icons_gpl'
+            self.checkBoxClear = QPixmap(icon_path + '/Checkbox-Empty-icon.png')
+            self.checkBoxFull = QPixmap(icon_path + '/Checkbox-Full-icon.png')
+            self.checkBoxes = {}
 
         def addTableRow(self, rowSize, data):
             super().addTableRow(rowSize, data, alignment=Qt.AlignHCenter)
             pid = data[self.pid_column]
-            self.pid_lookup[pid] = self.rowCount() - 1
+            newRowNum = self.rowCount() - 1
+            self.pid_lookup[pid] = newRowNum
+            checkbox = QLabel()
+            checkbox.setAlignment(Qt.AlignCenter)
+            self.setCellWidget(newRowNum,self.active_column,checkbox)
+            checkbox.setPixmap(self.checkBoxClear)
+            self.item(newRowNum,self.last_column).setText(str(self.SENSOR_OFF))
+            self.checkBoxes[int(pid)] = checkbox
 
-        def setColumnCount(self, columns, pid_column):
-            super().setColumnCount(columns)
+        def setColumnCount(self, columns, pid_column, active_column = 0):
+            super().setColumnCount(columns+1)
             self.pid_column = pid_column
+            self.active_column = active_column
+            self.last_column = columns
             self.setColumnHidden(pid_column, True)
+            #last column will be used to sort by 'Active'
+            self.setColumnHidden(self.last_column, True)
 
         def sortMyList(self, column):
+            if column == self.active_column:
+                column = self.last_column
             super().sortMyList(column)
             for i in range(self.rowCount()):
                 pid = self.item(i, self.pid_column).text()
@@ -142,13 +163,16 @@ class MyApp(QApplication):
         def sensor_toggle(self, row, col):
             pid = int(self.getPid(row))
             ecu = self.ecu
+            checkbox = self.checkBoxes[pid]
 
-            if self.item(row,0).text() != 'X':
-                self.item(row,0).setText("X")
+            if self.item(row,self.last_column).text() != self.SENSOR_ON:
+                self.item(row,self.last_column).setText(self.SENSOR_ON)
                 self.senprod.signals.sensorOnEvent.emit(pid,ecu)
+                checkbox.setPixmap(self.checkBoxFull)
             else:
                 self.senprod.signals.sensorOffEvent.emit(pid,ecu)
-                self.item(row,0).setText("")
+                self.item(row,self.last_column).setText(self.SENSOR_OFF)
+                checkbox.setPixmap(self.checkBoxClear)
 
     class TestList(MyListCtrl):
         def __init__(self):
@@ -160,18 +184,37 @@ class MyApp(QApplication):
             self.horizontalHeader().setSectionResizeMode(1,QHeaderView.ResizeToContents)
             self.testStatusItems = {}
 
-            for i,description in enumerate(ptest): #fill MODE 1 PID 1 test description
+            self.addTableRow(2,[ptest[0], '0'])
+            self.dtcNumItem = self.item(0,1)
+            self.dtcNumItem.setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+
+            for i,description in enumerate(ptest[1:],1): #fill MODE 1 PID 1 test description
                 self.addTableRow(1, [description])
                 testStatusItem = QLabel()
                 testStatusItem.setAlignment(Qt.AlignCenter)
                 self.setCellWidget(i,1,testStatusItem)
                 self.testStatusItems[description] = testStatusItem
 
+        def addTableRow(self, rowSize, data):
+            rowNum = self.rowCount()
+            super().addTableRow(rowSize, data)
+            self.hideRow(rowNum)
+
         def setStatusIcon(self, row, icon):
             self.testStatusItems[self.item(row,0).text()].setPixmap(icon)
+            self.showRow(row)
 
         def setIconForTest(self, test, icon):
-            self.testStatusItems[test].setPixmap(icon)
+            testStatusItem = self.testStatusItems[test]
+            testStatusItem.setPixmap(icon)
+            for i in range(self.rowCount()):
+               if self.cellWidget(i,1) is testStatusItem:
+                    self.showRow(i)
+                    break 
+
+        def setNumDTCs(self, numDTCs):
+            self.dtcNumItem.setText(str(numDTCs))
+            self.showRow(self.row(self.dtcNumItem))
 
     #Add a Widget to a panel with a layout and return the Panel
     class MyPanel(QWidget):
@@ -286,6 +329,7 @@ class MyApp(QApplication):
 
         if len(self.port.ecu_addresses) > 0:
             for ecu in self.port.ecu_addresses:
+                self.updateTestTable(ecu)
                 supp = self.port.get_supported(ecu) #read supported mode $01
                                                     #PIDS of each ECU that responds
                 ecuName = 'ECU' + str(self.port.getEcuNum(ecu))
@@ -330,17 +374,35 @@ class MyApp(QApplication):
         sensorTable.setColumnWidth(0,55)
         sensorTable.setColumnWidth(1,40)
         sensorTable.setColumnWidth(3,250)
-        for i, supported in enumerate(supp,1):
+        #Create entry in table for each supported PID (excluding PID $01)
+        #Decode of PID $01 is on Test tab
+        for i, supported in enumerate(supp[1:],2):
             if supported == '1':
                 obd_sensor = obd_io.obd_sensors.SENSORS[i]
                 s = obd_sensor.name
                 pid_hex = obd_sensor.cmd[-2:]
                 pid_dec = int(pid_hex,16)
                 row = sensorTable.rowCount()
-                sensorTable.addTableRow(5, ['','$' + pid_hex, str(pid_dec), s, ''])
+                sensorTable.addTableRow(6, ['','$' + pid_hex, str(pid_dec), s, '',''])
                 sensorTable.item(row,3).setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
 
         self.sensorTabs.addTab(sensorTable, title)
+
+    def updateTestTable(self,ecu):
+        res = self.port.get_tests(ecu)
+        for test in ptest:
+            if test == ptest[0]:
+                self.OBDTests.setNumDTCs(res[test])
+            elif test == ptest[1]:
+                if res[test]:
+                    self.OBDTests.setIconForTest(test, self.checkEngineIcon)
+                else:
+                    self.OBDTests.setIconForTest(test, self.checkEngineOffIcon)
+            else:
+                if res[test] == 1:
+                    self.OBDTests.setIconForTest(test, self.completeIcon)
+                elif res[test] == -1:
+                    self.OBDTests.setIconForTest(test, self.failedIcon)
 
     def build_sensor_page(self):
         self.sensorTabs = QTabWidget()
@@ -385,8 +447,12 @@ class MyApp(QApplication):
         self.sensorTables = {}
         self.port = None
 
-        self.completeIcon = QPixmap('icons/check-icon2.png')
-        self.failedIcon = QPixmap('icons/delete-icon.png')
+        icon_path = os.path.dirname(sys.argv[0]) + '/icons_free'
+        self.completeIcon = QPixmap(icon_path + '/check-icon2.png')
+        self.failedIcon = QPixmap(icon_path + '/delete-icon.png')
+        icon_path = os.path.dirname(sys.argv[0]) + '/icons_pubdomain'
+        self.checkEngineIcon = QPixmap(icon_path + '/check-engine.png')
+        self.checkEngineOffIcon = QPixmap(icon_path + '/check-engine-off.png')
 
         def CreateMenuItem(ItemName, ToolTipText, ItemTrigger):
             menuItemAction = QAction(ItemName)
@@ -450,8 +516,6 @@ class MyApp(QApplication):
 
         OBDTestPanel = self.MyPanel(self.OBDTests)
         self.nb.addTab(OBDTestPanel, "Tests")
-
-#        self.OBDTests.setStatusIcon(1,self.completeIcon)
 
         self.build_sensor_page()
 
