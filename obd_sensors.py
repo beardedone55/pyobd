@@ -22,6 +22,20 @@
 # You should have received a copy of the GNU General Public License
 # along with pyOBD; if not, see https://www.gnu.org/licenses/.
 ############################################################################
+############################################################################
+#
+# Modified from the original by Brian LePage on the following dates:
+#   June 2, 2018
+#   September 29, 2018
+#   January 22, 2019
+#   February 16, 2019
+#   February 19, 2019
+#   February 27, 2019
+#   March 31, 2019
+#   April 6, 2019
+#
+# For a complete history, see https://github.com/beardedone55/pyobd
+############################################################################
 
 from obd2_codes import ptest
 

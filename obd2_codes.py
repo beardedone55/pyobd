@@ -23,6 +23,15 @@
 # You should have received a copy of the GNU General Public License
 # along with pyOBD; if not, see https://www.gnu.org/licenses/.
 ############################################################################
+############################################################################
+#
+# Modified from the original by Brian LePage on the following dates:
+#   September 29, 2018
+#   February 16, 2019
+#   February 19, 2019
+#
+# For a complete history, see https://github.com/beardedone55/pyobd
+############################################################################
 
 pcodes = {
     "P0001": "Fuel Volume Regulator Control Circuit/Open",
