@@ -37,7 +37,7 @@
 # For a complete history, see https://github.com/beardedone55/pyobd
 ############################################################################
 
-from obd2_codes import ptest
+from .obd2_codes import ptest
 
 def hex_to_int(hexstr):
     return int(hexstr,16)

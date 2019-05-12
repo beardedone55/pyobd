@@ -47,10 +47,10 @@ import string
 import time
 from math import ceil
 
-import obd_sensors
+from . import obd_sensors
 
-from obd_sensors import hex_to_int
-from obd2_codes import ptest
+from .obd_sensors import hex_to_int
+from .obd2_codes import ptest
 
 GET_DTC_COMMAND   = "03"
 CLEAR_DTC_COMMAND = "04"

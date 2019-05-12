@@ -4,69 +4,175 @@
 !_TAG_PROGRAM_NAME	Exuberant Ctags	//
 !_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
 !_TAG_PROGRAM_VERSION	5.9~svn20110310	//
-CLEAR_DTC_COMMAND	obd_io.py	/^CLEAR_DTC_COMMAND = "04"$/;"	v
-ConnectionError	obd_io.py	/^        def ConnectionError(count, msg = ''):$/;"	f	function:OBDPort.__init__
-GET_DTC_COMMAND	obd_io.py	/^GET_DTC_COMMAND   = "03"$/;"	v
-GET_DTC_RESPONSE	obd_io.py	/^GET_DTC_RESPONSE = "43"$/;"	v
-GET_PENDING_DTC_COMMAND	obd_io.py	/^GET_PENDING_DTC_COMMAND = "07"$/;"	v
-GET_PENDING_DTC_RESPONSE	obd_io.py	/^GET_PENDING_DTC_RESPONSE = "47"$/;"	v
-OBDPort	obd_io.py	/^class OBDPort:$/;"	c
-SENSORS	obd_sensors.py	/^SENSORS = [$/;"	v
-SUPPORTED_PIDS	obd_sensors.py	/^SUPPORTED_PIDS = (0, 0x20, 0x40, 0x60, 0x80)$/;"	v
-Sensor	obd_sensors.py	/^class Sensor:$/;"	c
-__init__	obd_io.py	/^    def __init__(self,portnum,baudrate,_notify_window,SERTIMEOUT,RECONNATTEMPTS):$/;"	m	class:OBDPort
-__init__	obd_sensors.py	/^    def __init__(self,sensorName, sensorcommand, sensorValueFunction, u, length):$/;"	m	class:Sensor
-abs_load_percent	obd_sensors.py	/^def abs_load_percent(code):$/;"	f
-abs_vapor_pres	obd_sensors.py	/^def abs_vapor_pres(code):$/;"	f
-clear_dtc	obd_io.py	/^    def clear_dtc(self):$/;"	m	class:OBDPort
-close	obd_io.py	/^    def close(self):$/;"	m	class:OBDPort
-cm_voltage	obd_sensors.py	/^def cm_voltage(code):$/;"	f
-cpass	obd_sensors.py	/^def cpass(code):$/;"	f
-dtc_decrypt	obd_sensors.py	/^def dtc_decrypt(code):$/;"	f
-eq_ratio	obd_sensors.py	/^def eq_ratio(code):$/;"	f
-evap_pres	obd_sensors.py	/^def evap_pres(code):$/;"	f
-evap_pres2	obd_sensors.py	/^def evap_pres2(code):$/;"	f
-fuel_pres	obd_sensors.py	/^def fuel_pres(code): # in 3kPa$/;"	f
-fuel_pres_10	obd_sensors.py	/^def fuel_pres_10(code): # in 10kPa$/;"	f
-fuel_rate	obd_sensors.py	/^def fuel_rate(code):$/;"	f
-fuel_trim_percent	obd_sensors.py	/^def fuel_trim_percent(code):$/;"	f
-getEcuNum	obd_io.py	/^    def getEcuNum(self, ecuAddress):$/;"	m	class:OBDPort
-get_dtc	obd_io.py	/^    def get_dtc(self):$/;"	m	class:OBDPort
-get_obd_data_bytes	obd_io.py	/^    def get_obd_data_bytes(self):$/;"	m	class:OBDPort
-get_result	obd_io.py	/^    def get_result(self):$/;"	m	class:OBDPort
-get_sensor_value	obd_io.py	/^    def get_sensor_value(self,sensor,ecu):$/;"	m	class:OBDPort
-get_sensors	obd_io.py	/^    def get_sensors(self, sensor_index_list, ecu = None, mode = '01', sensors = obd_sensors.SENSORS):$/;"	m	class:OBDPort
-get_supported	obd_io.py	/^    def get_supported(self, ecu, mode = '01', supported_pids = obd_sensors.SUPPORTED_PIDS):$/;"	m	class:OBDPort
-get_tests	obd_io.py	/^    def get_tests(self, ecu, test_pid = 0x01):$/;"	m	class:OBDPort
-get_tests_MIL	obd_io.py	/^    def get_tests_MIL(self):$/;"	m	class:OBDPort
-get_vin	obd_io.py	/^    def get_vin(self, ecu):$/;"	m	class:OBDPort
-hex_to_bitstring	obd_sensors.py	/^def hex_to_bitstring(hexstr):$/;"	f
-hex_to_int	obd_sensors.py	/^def hex_to_int(hexstr):$/;"	f
-injection_timing	obd_sensors.py	/^def injection_timing(code):$/;"	f
-intake_m_pres	obd_sensors.py	/^def intake_m_pres(code): # in kPa$/;"	f
-interpret_result	obd_io.py	/^    def interpret_result(self,data,ecu):$/;"	m	class:OBDPort
-km_to_mi	obd_sensors.py	/^def km_to_mi(code):$/;"	f
-log	obd_io.py	/^    def log(self, sensor_index, filename):$/;"	m	class:OBDPort
-maf	obd_sensors.py	/^def maf(code):$/;"	f
-ol_cl	obd_sensors.py	/^def ol_cl(code):$/;"	f
-ol_cl_convert	obd_sensors.py	/^    def ol_cl_convert(byte):$/;"	f	function:ol_cl
-parse_get_dtc_data	obd_io.py	/^        def parse_get_dtc_data(res, DTCCodes, DTCType, dtcNumber=None):$/;"	f	function:OBDPort.get_dtc
-pcode_classes	obd2_codes.py	/^pcode_classes = {$/;"	v
-pcodes	obd2_codes.py	/^pcodes = {$/;"	v
-percent_scale	obd_sensors.py	/^def percent_scale(code):$/;"	f
-ptest	obd2_codes.py	/^ptest= [$/;"	v
-ref_torque	obd_sensors.py	/^def ref_torque(code):$/;"	f
-rel_fuel_pres	obd_sensors.py	/^def rel_fuel_pres(code): #in 0.079 kPa$/;"	f
-req_torque	obd_sensors.py	/^def req_torque(code):$/;"	f
-rpm	obd_sensors.py	/^def rpm(code):$/;"	f
-sec_to_min	obd_sensors.py	/^def sec_to_min(code):$/;"	f
-send_command	obd_io.py	/^    def send_command(self, cmd):$/;"	m	class:OBDPort
-sensor	obd_io.py	/^    def sensor(self , sensor_index, ecu = None, mode = None, sensors = obd_sensors.SENSORS):$/;"	m	class:OBDPort
-sensor_names	obd_io.py	/^    def sensor_names(self):$/;"	m	class:OBDPort
-sensor_voltage	obd_sensors.py	/^def sensor_voltage(code):$/;"	f
-speed	obd_sensors.py	/^def speed(code):$/;"	f
-temp	obd_sensors.py	/^def temp(code):$/;"	f
-test	obd_sensors.py	/^def test():$/;"	f
-testResults	obd_sensors.py	/^    def testResults(results, keys, supported, completions):$/;"	f	function:dtc_decrypt
-throttle_pos	obd_sensors.py	/^def throttle_pos(code):$/;"	f
-timing_advance	obd_sensors.py	/^def timing_advance(code):$/;"	f
+ALL_OFF	pyobd_beardedone55/pyobdGUI.py	/^ALL_OFF   = 506$/;"	v
+ALL_ON	pyobd_beardedone55/pyobdGUI.py	/^ALL_ON    = 505$/;"	v
+CLEAR_DTC_COMMAND	pyobd_beardedone55/obd_io.py	/^CLEAR_DTC_COMMAND = "04"$/;"	v
+ClearDTC	pyobd_beardedone55/pyobdGUI.py	/^    def ClearDTC(self):$/;"	f
+CodeLookup	pyobd_beardedone55/pyobdGUI.py	/^    def CodeLookup(self):$/;"	f
+Configure	pyobd_beardedone55/pyobdGUI.py	/^    def Configure(self):$/;"	f
+ConnectionError	pyobd_beardedone55/obd_io.py	/^        def ConnectionError(count, msg = ''):$/;"	f	function:OBDPort.__init__
+CreateMenuItem	pyobd_beardedone55/pyobdGUI.py	/^        def CreateMenuItem(ItemName, ToolTipText, ItemTrigger):$/;"	f	function:MyApp.OnInit
+CustomSlots	pyobd_beardedone55/pyobdGUI.py	/^        class CustomSlots(QObject):$/;"	c	class:MyApp.sensorProducer
+DTCClearEvent	pyobd_beardedone55/pyobdGUI.py	/^    DTCClearEvent = pyqtSignal(int)$/;"	v	class:MyApp
+DTCEvent	pyobd_beardedone55/pyobdGUI.py	/^    DTCEvent = pyqtSignal(list)$/;"	v	class:MyApp
+DebugEvent	pyobd_beardedone55/pyobdGUI.py	/^    DebugEvent = pyqtSignal(int,str)$/;"	v	class:MyApp
+GET_DTC_COMMAND	pyobd_beardedone55/obd_io.py	/^GET_DTC_COMMAND   = "03"$/;"	v
+GET_DTC_RESPONSE	pyobd_beardedone55/obd_io.py	/^GET_DTC_RESPONSE = "43"$/;"	v
+GET_PENDING_DTC_COMMAND	pyobd_beardedone55/obd_io.py	/^GET_PENDING_DTC_COMMAND = "07"$/;"	v
+GET_PENDING_DTC_RESPONSE	pyobd_beardedone55/obd_io.py	/^GET_PENDING_DTC_RESPONSE = "47"$/;"	v
+GetDTC	pyobd_beardedone55/pyobdGUI.py	/^    def GetDTC(self):$/;"	f
+ID_ABOUT	pyobd_beardedone55/pyobdGUI.py	/^ID_ABOUT  = 101$/;"	v
+ID_CLEAR	pyobd_beardedone55/pyobdGUI.py	/^ID_CLEAR  = 501$/;"	v
+ID_CONFIG	pyobd_beardedone55/pyobdGUI.py	/^ID_CONFIG = 500$/;"	v
+ID_DISCONNECT	pyobd_beardedone55/pyobdGUI.py	/^ID_DISCONNECT = 507$/;"	v
+ID_EXIT	pyobd_beardedone55/pyobdGUI.py	/^ID_EXIT   = 110$/;"	v
+ID_GETC	pyobd_beardedone55/pyobdGUI.py	/^ID_GETC   = 502$/;"	v
+ID_HELP_ABOUT	pyobd_beardedone55/pyobdGUI.py	/^ID_HELP_ABOUT = 508$/;"	v
+ID_HELP_ORDER	pyobd_beardedone55/pyobdGUI.py	/^ID_HELP_ORDER = 510$/;"	v
+ID_HELP_VISIT	pyobd_beardedone55/pyobdGUI.py	/^ID_HELP_VISIT = 509$/;"	v
+ID_LOOK	pyobd_beardedone55/pyobdGUI.py	/^ID_LOOK   = 504$/;"	v
+ID_RESET	pyobd_beardedone55/pyobdGUI.py	/^ID_RESET  = 503$/;"	v
+MyApp	pyobd_beardedone55/pyobdGUI.py	/^class MyApp(QApplication):$/;"	c
+MyListCtrl	pyobd_beardedone55/pyobdGUI.py	/^    class MyListCtrl(QTableWidget):$/;"	c	class:MyApp
+MyNumberInput	pyobd_beardedone55/pyobdGUI.py	/^    class MyNumberInput(QLineEdit):$/;"	c	class:MyApp
+MyPanel	pyobd_beardedone55/pyobdGUI.py	/^    class MyPanel(QWidget):$/;"	c	class:MyApp
+OBDPort	pyobd_beardedone55/obd_io.py	/^class OBDPort:$/;"	c
+OnDebug	pyobd_beardedone55/pyobdGUI.py	/^    def OnDebug(self, level, msg):$/;"	f
+OnDisconnect	pyobd_beardedone55/pyobdGUI.py	/^    def OnDisconnect(self): #disconnect connection to ECU$/;"	f
+OnDtc	pyobd_beardedone55/pyobdGUI.py	/^    def OnDtc(self,event):$/;"	f
+OnDtcClear	pyobd_beardedone55/pyobdGUI.py	/^    def OnDtcClear(self, event):$/;"	f
+OnExit	pyobd_beardedone55/pyobdGUI.py	/^    def OnExit(self):$/;"	f
+OnHelpAbout	pyobd_beardedone55/pyobdGUI.py	/^    def OnHelpAbout(self): #todo about box$/;"	m	class:MyApp
+OnHelpOrder	pyobd_beardedone55/pyobdGUI.py	/^    def OnHelpOrder(self):$/;"	m	class:MyApp
+OnHelpVisit	pyobd_beardedone55/pyobdGUI.py	/^    def OnHelpVisit(self):$/;"	m	class:MyApp
+OnInit	pyobd_beardedone55/pyobdGUI.py	/^    def OnInit(self):$/;"	m	class:MyApp
+OnResult	pyobd_beardedone55/pyobdGUI.py	/^    def OnResult(self,ecu,pid,column,data):$/;"	f
+OnStatus	pyobd_beardedone55/pyobdGUI.py	/^    def OnStatus(self,event):$/;"	f
+OnTests	pyobd_beardedone55/pyobdGUI.py	/^    def OnTests(self,event):$/;"	f
+OpenPort	pyobd_beardedone55/pyobdGUI.py	/^    def OpenPort(self):$/;"	f
+QueryClear	pyobd_beardedone55/pyobdGUI.py	/^    def QueryClear(self):$/;"	f
+ResultEvent	pyobd_beardedone55/pyobdGUI.py	/^    ResultEvent = pyqtSignal(str,int, int, str)$/;"	v	class:MyApp
+SENSORS	pyobd_beardedone55/obd_sensors.py	/^SENSORS = [$/;"	v
+SENSOR_OFF	pyobd_beardedone55/pyobdGUI.py	/^        SENSOR_OFF = '1'$/;"	v	class:MyApp.SensorList
+SENSOR_ON	pyobd_beardedone55/pyobdGUI.py	/^        SENSOR_ON = '0'$/;"	v	class:MyApp.SensorList
+SUPPORTED_PIDS	pyobd_beardedone55/obd_sensors.py	/^SUPPORTED_PIDS = (0, 0x20, 0x40, 0x60, 0x80)$/;"	v
+Sensor	pyobd_beardedone55/obd_sensors.py	/^class Sensor:$/;"	c
+SensorList	pyobd_beardedone55/pyobdGUI.py	/^    class SensorList(MyListCtrl):$/;"	c	class:MyApp
+SensorProducerReady	pyobd_beardedone55/pyobdGUI.py	/^    SensorProducerReady = pyqtSignal()$/;"	v	class:MyApp
+StatusEvent	pyobd_beardedone55/pyobdGUI.py	/^    StatusEvent = pyqtSignal(list)$/;"	v	class:MyApp
+TestEvent	pyobd_beardedone55/pyobdGUI.py	/^    TestEvent = pyqtSignal(list)$/;"	v	class:MyApp
+TestList	pyobd_beardedone55/pyobdGUI.py	/^    class TestList(MyListCtrl):$/;"	c	class:MyApp
+TraceDebug	pyobd_beardedone55/pyobdGUI.py	/^    def TraceDebug(self,level,msg):$/;"	m	class:MyApp
+__init__	pyobd_beardedone55/obd_io.py	/^    def __init__(self,portnum,baudrate,_notify_window,SERTIMEOUT,RECONNATTEMPTS):$/;"	m	class:OBDPort
+__init__	pyobd_beardedone55/obd_sensors.py	/^    def __init__(self,sensorName, sensorcommand, sensorValueFunction, u, length):$/;"	m	class:Sensor
+__init__	pyobd_beardedone55/pyobdGUI.py	/^            def __init__(self):$/;"	m	class:MyApp.sensorProducer.CustomSlots
+__init__	pyobd_beardedone55/pyobdGUI.py	/^        def __init__(self):$/;"	m	class:MyApp.TestList
+__init__	pyobd_beardedone55/pyobdGUI.py	/^        def __init__(self, defaultText='', width=20):$/;"	m	class:MyApp.MyNumberInput
+__init__	pyobd_beardedone55/pyobdGUI.py	/^        def __init__(self, ecu):$/;"	m	class:MyApp.SensorList
+__init__	pyobd_beardedone55/pyobdGUI.py	/^        def __init__(self, sortable=True):$/;"	m	class:MyApp.MyListCtrl
+__init__	pyobd_beardedone55/pyobdGUI.py	/^        def __init__(self, widget=None):$/;"	m	class:MyApp.MyPanel
+__init__	pyobd_beardedone55/pyobdGUI.py	/^        def __init__(self,_notify_window):$/;"	m	class:MyApp.sensorProducer
+__init__	pyobd_beardedone55/pyobdGUI.py	/^    def __init__(self, myArgs):$/;"	m	class:MyApp
+abs_load_percent	pyobd_beardedone55/obd_sensors.py	/^def abs_load_percent(code):$/;"	f
+abs_vapor_pres	pyobd_beardedone55/obd_sensors.py	/^def abs_vapor_pres(code):$/;"	f
+addTableRow	pyobd_beardedone55/pyobdGUI.py	/^        def addTableRow(self, rowSize, data):$/;"	m	class:MyApp.SensorList
+addTableRow	pyobd_beardedone55/pyobdGUI.py	/^        def addTableRow(self, rowSize, data):$/;"	m	class:MyApp.TestList
+addTableRow	pyobd_beardedone55/pyobdGUI.py	/^        def addTableRow(self, rowSize, data, bold=False, italic=False, alignment=Qt.AlignLeft):$/;"	m	class:MyApp.MyListCtrl
+add_sensor_table	pyobd_beardedone55/pyobdGUI.py	/^    def add_sensor_table(self, title, ecu, supp):$/;"	m	class:MyApp
+all_off	pyobd_beardedone55/pyobdGUI.py	/^        def all_off(self, ecu):$/;"	m	class:MyApp.sensorProducer
+author	setup.py	/^    author="Brian LePage",$/;"	v
+author_email	setup.py	/^    author_email="bjlepage22@gmail.com",$/;"	v
+build_DTC_page	pyobd_beardedone55/pyobdGUI.py	/^    def build_DTC_page(self):$/;"	m	class:MyApp
+build_sensor_page	pyobd_beardedone55/pyobdGUI.py	/^    def build_sensor_page(self):$/;"	m	class:MyApp
+classifiers	setup.py	/^    classifiers=[$/;"	v
+clear_dtc	pyobd_beardedone55/obd_io.py	/^    def clear_dtc(self):$/;"	m	class:OBDPort
+close	pyobd_beardedone55/obd_io.py	/^    def close(self):$/;"	m	class:OBDPort
+cm_voltage	pyobd_beardedone55/obd_sensors.py	/^def cm_voltage(code):$/;"	f
+connectSlots	pyobd_beardedone55/pyobdGUI.py	/^            def connectSlots(self, parent):$/;"	m	class:MyApp.sensorProducer.CustomSlots
+cpass	pyobd_beardedone55/obd_sensors.py	/^def cpass(code):$/;"	f
+description	setup.py	/^    description="An automotive diagnostic tool for OBDII",$/;"	v
+disconnectSlots	pyobd_beardedone55/pyobdGUI.py	/^            def disconnectSlots(self):$/;"	m	class:MyApp.sensorProducer.CustomSlots
+dtc_decrypt	pyobd_beardedone55/obd_sensors.py	/^def dtc_decrypt(code):$/;"	f
+eq_ratio	pyobd_beardedone55/obd_sensors.py	/^def eq_ratio(code):$/;"	f
+evap_pres	pyobd_beardedone55/obd_sensors.py	/^def evap_pres(code):$/;"	f
+evap_pres2	pyobd_beardedone55/obd_sensors.py	/^def evap_pres2(code):$/;"	f
+exitCleanup	pyobd_beardedone55/pyobdGUI.py	/^    def exitCleanup(self):$/;"	f
+fuel_pres	pyobd_beardedone55/obd_sensors.py	/^def fuel_pres(code): # in 3kPa$/;"	f
+fuel_pres_10	pyobd_beardedone55/obd_sensors.py	/^def fuel_pres_10(code): # in 10kPa$/;"	f
+fuel_rate	pyobd_beardedone55/obd_sensors.py	/^def fuel_rate(code):$/;"	f
+fuel_trim_percent	pyobd_beardedone55/obd_sensors.py	/^def fuel_trim_percent(code):$/;"	f
+getEcuNum	pyobd_beardedone55/obd_io.py	/^    def getEcuNum(self, ecuAddress):$/;"	m	class:OBDPort
+getPid	pyobd_beardedone55/pyobdGUI.py	/^        def getPid(self, row):$/;"	m	class:MyApp.SensorList
+get_dtc	pyobd_beardedone55/obd_io.py	/^    def get_dtc(self):$/;"	m	class:OBDPort
+get_obd_data_bytes	pyobd_beardedone55/obd_io.py	/^    def get_obd_data_bytes(self):$/;"	m	class:OBDPort
+get_result	pyobd_beardedone55/obd_io.py	/^    def get_result(self):$/;"	m	class:OBDPort
+get_sensor_value	pyobd_beardedone55/obd_io.py	/^    def get_sensor_value(self,sensor,ecu):$/;"	m	class:OBDPort
+get_sensors	pyobd_beardedone55/obd_io.py	/^    def get_sensors(self, sensor_index_list, ecu = None, mode = '01', sensors = obd_sensors.SENSORS):$/;"	m	class:OBDPort
+get_supported	pyobd_beardedone55/obd_io.py	/^    def get_supported(self, ecu, mode = '01', supported_pids = obd_sensors.SUPPORTED_PIDS):$/;"	m	class:OBDPort
+get_tests	pyobd_beardedone55/obd_io.py	/^    def get_tests(self, ecu, test_pid = 0x01):$/;"	m	class:OBDPort
+get_tests_MIL	pyobd_beardedone55/obd_io.py	/^    def get_tests_MIL(self):$/;"	m	class:OBDPort
+get_vin	pyobd_beardedone55/obd_io.py	/^    def get_vin(self, ecu):$/;"	m	class:OBDPort
+hex_to_bitstring	pyobd_beardedone55/obd_sensors.py	/^def hex_to_bitstring(hexstr):$/;"	f
+hex_to_int	pyobd_beardedone55/obd_sensors.py	/^def hex_to_int(hexstr):$/;"	f
+initCommunication	pyobd_beardedone55/pyobdGUI.py	/^    def initCommunication(self):$/;"	m	class:MyApp
+injection_timing	pyobd_beardedone55/obd_sensors.py	/^def injection_timing(code):$/;"	f
+intake_m_pres	pyobd_beardedone55/obd_sensors.py	/^def intake_m_pres(code): # in kPa$/;"	f
+interpret_result	pyobd_beardedone55/obd_io.py	/^    def interpret_result(self,data,ecu):$/;"	m	class:OBDPort
+km_to_mi	pyobd_beardedone55/obd_sensors.py	/^def km_to_mi(code):$/;"	f
+log	pyobd_beardedone55/obd_io.py	/^    def log(self, sensor_index, filename):$/;"	m	class:OBDPort
+long_description	setup.py	/^    long_description = fh.read()$/;"	v
+long_description	setup.py	/^    long_description=long_description,$/;"	v
+long_description_content_type	setup.py	/^    long_description_content_type="text\/markdown",$/;"	v
+maf	pyobd_beardedone55/obd_sensors.py	/^def maf(code):$/;"	f
+name	setup.py	/^    name="pyobd-beardedone55",$/;"	v
+off	pyobd_beardedone55/pyobdGUI.py	/^        def off(self, pid, ecu):$/;"	m	class:MyApp.sensorProducer
+ol_cl	pyobd_beardedone55/obd_sensors.py	/^def ol_cl(code):$/;"	f
+ol_cl_convert	pyobd_beardedone55/obd_sensors.py	/^    def ol_cl_convert(byte):$/;"	f	function:ol_cl
+on	pyobd_beardedone55/pyobdGUI.py	/^        def on(self, pid, ecu):$/;"	m	class:MyApp.sensorProducer
+onTestDTC	pyobd_beardedone55/pyobdGUI.py	/^    def onTestDTC(self):$/;"	f
+packages	setup.py	/^    packages=setuptools.find_packages(),$/;"	v
+parse_get_dtc_data	pyobd_beardedone55/obd_io.py	/^        def parse_get_dtc_data(res, DTCCodes, DTCType, dtcNumber=None):$/;"	f	function:OBDPort.get_dtc
+pcode_classes	pyobd_beardedone55/obd2_codes.py	/^pcode_classes = {$/;"	v
+pcodes	pyobd_beardedone55/obd2_codes.py	/^pcodes = {$/;"	v
+percent_scale	pyobd_beardedone55/obd_sensors.py	/^def percent_scale(code):$/;"	f
+ptest	pyobd_beardedone55/obd2_codes.py	/^ptest= [$/;"	v
+ref_torque	pyobd_beardedone55/obd_sensors.py	/^def ref_torque(code):$/;"	f
+rel_fuel_pres	pyobd_beardedone55/obd_sensors.py	/^def rel_fuel_pres(code): #in 0.079 kPa$/;"	f
+req_torque	pyobd_beardedone55/obd_sensors.py	/^def req_torque(code):$/;"	f
+rpm	pyobd_beardedone55/obd_sensors.py	/^def rpm(code):$/;"	f
+run	pyobd_beardedone55/pyobdGUI.py	/^        def run(self):$/;"	m	class:MyApp.sensorProducer
+scanSerial	pyobd_beardedone55/pyobdGUI.py	/^    def scanSerial(self):$/;"	f
+sec_to_min	pyobd_beardedone55/obd_sensors.py	/^def sec_to_min(code):$/;"	f
+selectEcu	pyobd_beardedone55/pyobdGUI.py	/^        def selectEcu(self, ecu):$/;"	m	class:MyApp.sensorProducer
+send_command	pyobd_beardedone55/obd_io.py	/^    def send_command(self, cmd):$/;"	m	class:OBDPort
+sensor	pyobd_beardedone55/obd_io.py	/^    def sensor(self , sensor_index, ecu = None, mode = None, sensors = obd_sensors.SENSORS):$/;"	m	class:OBDPort
+sensorAllOffEvent	pyobd_beardedone55/pyobdGUI.py	/^            sensorAllOffEvent = pyqtSignal(str)$/;"	v	class:MyApp.sensorProducer.CustomSlots
+sensorOffEvent	pyobd_beardedone55/pyobdGUI.py	/^            sensorOffEvent = pyqtSignal(int,str)$/;"	v	class:MyApp.sensorProducer.CustomSlots
+sensorOnEvent	pyobd_beardedone55/pyobdGUI.py	/^            sensorOnEvent = pyqtSignal(int,str)$/;"	v	class:MyApp.sensorProducer.CustomSlots
+sensorProducer	pyobd_beardedone55/pyobdGUI.py	/^    class sensorProducer(QThread):$/;"	c	class:MyApp
+sensorTabClicked	pyobd_beardedone55/pyobdGUI.py	/^    def sensorTabClicked(self, tabNum):$/;"	m	class:MyApp
+sensorTabEvent	pyobd_beardedone55/pyobdGUI.py	/^            sensorTabEvent = pyqtSignal(str)$/;"	v	class:MyApp.sensorProducer.CustomSlots
+sensor_control_off	pyobd_beardedone55/pyobdGUI.py	/^    def sensor_control_off(self): #after disconnect disable fer buttons$/;"	m	class:MyApp
+sensor_control_on	pyobd_beardedone55/pyobdGUI.py	/^    def sensor_control_on(self): #after connection enable few buttons$/;"	m	class:MyApp
+sensor_names	pyobd_beardedone55/obd_io.py	/^    def sensor_names(self):$/;"	m	class:OBDPort
+sensor_toggle	pyobd_beardedone55/pyobdGUI.py	/^        def sensor_toggle(self, row, col):$/;"	m	class:MyApp.SensorList
+sensor_voltage	pyobd_beardedone55/obd_sensors.py	/^def sensor_voltage(code):$/;"	f
+setColumnCount	pyobd_beardedone55/pyobdGUI.py	/^        def setColumnCount(self, columns):$/;"	m	class:MyApp.MyListCtrl
+setColumnCount	pyobd_beardedone55/pyobdGUI.py	/^        def setColumnCount(self, columns, pid_column, active_column = 0):$/;"	m	class:MyApp.SensorList
+setIconForTest	pyobd_beardedone55/pyobdGUI.py	/^        def setIconForTest(self, test, icon):$/;"	m	class:MyApp.TestList
+setNumDTCs	pyobd_beardedone55/pyobdGUI.py	/^        def setNumDTCs(self, numDTCs):$/;"	m	class:MyApp.TestList
+setSensorThread	pyobd_beardedone55/pyobdGUI.py	/^        def setSensorThread(self,senprod):$/;"	m	class:MyApp.SensorList
+setStatusIcon	pyobd_beardedone55/pyobdGUI.py	/^        def setStatusIcon(self, row, icon):$/;"	m	class:MyApp.TestList
+sortMyList	pyobd_beardedone55/pyobdGUI.py	/^        def sortMyList(self, column):$/;"	m	class:MyApp.MyListCtrl
+sortMyList	pyobd_beardedone55/pyobdGUI.py	/^        def sortMyList(self, column):$/;"	m	class:MyApp.SensorList
+speed	pyobd_beardedone55/obd_sensors.py	/^def speed(code):$/;"	f
+stop	pyobd_beardedone55/pyobdGUI.py	/^    def stop(self):$/;"	m	class:MyApp
+tabClicked	pyobd_beardedone55/pyobdGUI.py	/^    def tabClicked(self, tabNum):$/;"	m	class:MyApp
+temp	pyobd_beardedone55/obd_sensors.py	/^def temp(code):$/;"	f
+test	pyobd_beardedone55/obd_sensors.py	/^def test():$/;"	f
+testResults	pyobd_beardedone55/obd_sensors.py	/^    def testResults(results, keys, supported, completions):$/;"	f	function:dtc_decrypt
+throttle_pos	pyobd_beardedone55/obd_sensors.py	/^def throttle_pos(code):$/;"	f
+timing_advance	pyobd_beardedone55/obd_sensors.py	/^def timing_advance(code):$/;"	f
+updateTestTable	pyobd_beardedone55/pyobdGUI.py	/^    def updateTestTable(self,ecu):$/;"	m	class:MyApp
+url	setup.py	/^    url="https:\/\/github.com\/beardedone55\/pyobd",$/;"	v
+version	setup.py	/^    version="0.0.1",$/;"	v

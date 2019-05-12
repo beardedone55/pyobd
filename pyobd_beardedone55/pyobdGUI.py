@@ -2,7 +2,7 @@
 # vim: shiftwidth=4:tabstop=4:expandtab
 ############################################################################
 #
-# pyobd
+# pyobdGUI.py
 #
 # Copyright 2004 Donour Sizemore (donour@uchicago.edu)
 # Copyright 2009 Secons Ltd. (www.obdtester.com)
@@ -49,7 +49,7 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 
-import obd_io #OBD2 funcs
+from . import obd_io #OBD2 funcs
 import os #os.environ
 
 import sys
@@ -60,8 +60,8 @@ import time
 import configparser #safe application configuration
 import webbrowser #open browser from python
 
-from obd2_codes import pcodes
-from obd2_codes import ptest
+from .obd2_codes import pcodes
+from .obd2_codes import ptest
 
 ID_ABOUT  = 101
 ID_EXIT   = 110
@@ -876,6 +876,3 @@ See the GNU General Public License for more details.</p>
 
     def OnExit(self):
         self.quit()
-
-app = MyApp(sys.argv)
-sys.exit(app.exec_())
