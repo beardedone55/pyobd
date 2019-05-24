@@ -1,13 +1,24 @@
-Source: pyobd
-Section:utils
+Source: python3-pyobd-beardedone55
+Section: utils
 Priority: optional
-Maintainer: SeCons Ltd. <www.obdtester.com>  <info@secons.com>
-Build-Depends: debhelper (>= 9)
-Standards-Version: 3.9.4
-Homepage: <www.obdtester.com>
+Maintainer: Brian LePage <bjlepage22@gmail.com>
+Build-Depends: debhelper (>= 10),python3,python3-setuptools
+Standards-Version: 4.3.0
+Homepage: http://www.obdtester.com/pyobd
+Vcs-Browser: https://github.com/beardedone55/pyobd
+Vcs-Git: git://github.com/beardedone55/pyobd.git
 
-Package: pyobd
+Package: python3-pyobd-beardedone55
 Architecture: all
-Depends: python,python-serial,python-wxgtk2.6
-Description:pyOBD is an OBD-II (SAE-J1979) compliant scantool software written entirely in Python. It is meant to interface with the low cost ELM 32x devices such as ELM-USB.
-	pyOBD was written by Donour Sizemore, now maintained and improved by SECONS Ltd.i <www.obdtester.com> and it is Free Software and is distributed under the terms of the GPL.  For Python devlopers, pyOBD provides a single module, obd_io, that allows high level control over sensor data and diagnostic trouble code managment. The entire package has been tested to work on both Mac OSX 10.3 (panther) and Gentoo Linux. Generally speaking, any Posix-type system meeting the requirements below will be supported. In theory, Windows is also supported but has not been tested.
+Section: utils
+Priority: optional
+Depends: python3,python3-serial,python3-pyqt5,${misc:Depends}
+Description:OBD-II (SAE-J1979) compliant scantool software written in Python.
+ pyOBD is meant to interface with the low cost ELM 32x devices such as ELM-USB.
+ It was written by Donour Sizemore, later maintained and improved by SECONS,
+ Ltd. <www.obdtester.com>. It is Free Software and is distributed under the
+ terms of the GPLv2. This fork is maintained by Brian LePage
+ <https://github.com/beardedone55>. For Python developers, pyOBD provides a
+ single module, obd_io, that allows high level control over sensor data and
+ diagnostic trouble code management. The entire package has been tested to
+ work on Ubuntu Linux.

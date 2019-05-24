@@ -7,7 +7,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="pyobd-beardedone55",
-    version="0.0.1",
+    version='0.9.4',
     author="Brian LePage",
     author_email="bjlepage22@gmail.com",
     description="An automotive diagnostic tool for OBDII",
@@ -19,5 +19,13 @@ setuptools.setup(
         "Programming Language :: Python :: 3",
         "License :: GPLv2",
         "Operating System :: OS Independent",
+    ],
+    include_package_data=True,
+    install_requires=[
+        'pyserial',
+        'PyQt5'
+    ],
+    scripts=[
+        'pyobd'
     ],
 )

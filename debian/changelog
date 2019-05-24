@@ -1,3 +1,20 @@
+python3-pyobd-beardedone55 (0.9.4) unstable; urgency=low
+
+  * local package
+  * Various bugfixes
+  * Switch to Python 3
+  * Add User Baudrate Configuration
+  * Switch to PyQt5
+  * Add support for CAN
+  * Add support for additional sensors
+  * Update documentation
+  * Add support for vehicles with multiple emmissions control ECUs
+  * Add VIN to status page
+  * Fixed up 'tests' tab
+
+
+ -- Brian LePage https://github.com/beardedone55 <bjlepage22@gmail.com>  Sun, 12 May 2019 23:07:00 -0500
+
 pyobd (0.9.3) unstable; urgency=low
 
   * Various bugfixes
@@ -6,6 +23,6 @@ pyobd (0.9.3) unstable; urgency=low
 
 pyobd (0.9.2-2) unstable; urgency=low
 
-  * Initial release (Closes: #nnnn)  <nnnn is the bug number of your ITP>
+  * Initial release
 
  -- SeCons Ltd. www.obdtester.com <info@secons.com>  Fri, 11 Sep 2009 15:24:35 +0200

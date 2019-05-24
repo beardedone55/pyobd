@@ -1,45 +1,77 @@
-This package was debianized by:
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: pyobd
+Upstream-Contact: info@secons.com
+Source: http://obdtester.com/pyobd-download
+Copyright: 2004 Donour Sizemore
+           2009 Secons Ltd.
+           2018-2019 Brian LePage
+License: GPL-2+
 
-    SeCons Ltd. <info@secons.com> on Fri, 11 Sep 2009 15:24:35 +0200
+Files: *
+Copyright: 2004 Donour Sizemore
+           2009 Secons Ltd.
+           2018-2019 Brian LePage
+License: GPL-2+
 
-It was downloaded from:
+Files: */icons_free/*.png
+Copyright: 2019 Anders Bjarnle
+License: Free to Use
+ No permission needed to use these icons. You are free
+ to use, modify and change them though I would appreciate
+ if you told me what you're going to use them for.
+ .
+ Have a nice day!
 
-    <url://www.obdtester.com>
+Files: */Motorkontrolleuchte.svg */check-engine*.png
+Copyright: None
+License: public-domain
+ Original image Motorkontrolleuchte.svg granted to public
+ by creator, Wikipedia user Chris828.
+ .
+ Derivative images check-engine.png and check-engine-off.png
+ granted to public domain by creator Brian LePage.
 
-Upstream Author(s):
+Files: */icons_gpl/*.png
+Copyright: 2014-2019 bokehlicia
+License: GPL-3+
+ These files free software: you can redistribute them and/or
+ modify them under the terms of the GNU General Public
+ License as published by the Free Software Foundation, either
+ version 3 of the License, or (at your option) any later
+ version.
+ .
+ These files are distributed in the hope that they will be
+ useful, but WITHOUT ANY WARRANTY; without even the implied
+ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ PURPOSE.  See the GNU General Public License for more
+ details.
+ .
+ You should have received a copy of the GNU General Public
+ License along with these files.  If not, see
+ <https://www.gnu.org/licenses/>.
+ .
+ On Debian systems, the full text of the GNU General Public
+ License version 2 can be found in the file
+ `/usr/share/common-licenses/GPL-3'.
 
-    SeCons Ltd. <info@secons.com>
-
-Copyright:
-
-    Copyright 2004 Donour Sizemore (donour@uchicago.edu)
-    Copyright 2009 Secons Ltd. (www.obdtester.com)
-
-License:
-
-    pyOBD package is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 2 of the License, or
-    (at your option) any later version.
-
-    pyOBD package is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this package; if not, write to the Free Software
-    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
-
-On Debian systems, the complete text of the GNU General
-Public License can be found in `/usr/share/common-licenses/GPL'.
-
-The Debian packaging is:
-
-    Copyright C) 2009, SeCons Ltd.  <info@secons.com>
-
-and is licensed under the GPL, see above.
-
-
-# Please also look if there are files or directories which have a
-# different copyright/license attached and list them here.
+License: GPL-2+
+ This program is free software; you can redistribute it
+ and/or modify it under the terms of the GNU General Public
+ License as published by the Free Software Foundation; either
+ version 2 of the License, or (at your option) any later
+ version.
+ .
+ This program is distributed in the hope that it will be
+ useful, but WITHOUT ANY WARRANTY; without even the implied
+ warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ PURPOSE.  See the GNU General Public License for more
+ details.
+ .
+ You should have received a copy of the GNU General Public
+ License along with this package; if not, write to the Free
+ Software Foundation, Inc., 51 Franklin St, Fifth Floor,
+ Boston, MA  02110-1301 USA
+ .
+ On Debian systems, the full text of the GNU General Public
+ License version 2 can be found in the file
+ `/usr/share/common-licenses/GPL-2'.

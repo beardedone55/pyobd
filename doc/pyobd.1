@@ -1,0 +1,40 @@
+.\" Manpage for pyobd.
+.TH man 1 "14 May 2019" "" "pyobd man page"
+.SH NAME
+pyobd - Python OBD-II Diagnostic Application
+.SH SYNOPSIS
+pyobd
+.SH DESCRIPTION
+PyOBD is an automotive diagnostic tool written entirely
+in Python. PyOBD will interface with your automobile's 
+OBD-II diagnostic port with an ELM-32x OBD to RS232 Interpreter.
+.SH What Can PyOBD Do?
+.P
+The following features are currently implemented in PyOBD:
+.HP 2
+\(bu Communicate with vehicles that support OBD-II (newer than 1996)
+.HP 2
+\(bu Display results of vehicle emissions self tests.
+.HP 2
+\(bu Read and clear diagnostic trouble codes from vehicle's emmissions control system.
+.HP 2
+\(bu Display live emissions related data, such fuel trim, engine RPM, vehicle speed, etc.
+.SH What Can't PyOBD Do?
+.P
+The following features are not currently available but may be implemented in future versions:
+.HP 2
+\(bu Graph live data from vehicle sensors.
+.HP 2
+\(bu Record and save live data from vehicle sensors.
+.HP 2
+\(bu Display vendor specific live data.
+.HP 2
+\(bu Read and clear diagnostic trouble codes from other vehicle components (ABS, power steering, etc.).
+.SH PyOBD Source
+The latest source code for PyOBD can be downloaded from https://github.com/beardedone55/pyobd/.
+.SH BUGS
+Bug tracker:
+
+	https://github.com/beardedone55/pyobd/issues/
+.SH AUTHOR
+Brian LePage (bjlepage22@gmail.com)

@@ -4,65 +4,211 @@
 !_TAG_PROGRAM_NAME	Exuberant Ctags	//
 !_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
 !_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+ALL_OFF	build/lib/pyobd_beardedone55/pyobdGUI.py	/^ALL_OFF   = 506$/;"	v
+ALL_OFF	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^ALL_OFF   = 506$/;"	v
 ALL_OFF	pyobd_beardedone55/pyobdGUI.py	/^ALL_OFF   = 506$/;"	v
+ALL_ON	build/lib/pyobd_beardedone55/pyobdGUI.py	/^ALL_ON    = 505$/;"	v
+ALL_ON	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^ALL_ON    = 505$/;"	v
 ALL_ON	pyobd_beardedone55/pyobdGUI.py	/^ALL_ON    = 505$/;"	v
+CLEAR_DTC_COMMAND	build/lib/pyobd_beardedone55/obd_io.py	/^CLEAR_DTC_COMMAND = "04"$/;"	v
+CLEAR_DTC_COMMAND	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_io.py	/^CLEAR_DTC_COMMAND = "04"$/;"	v
 CLEAR_DTC_COMMAND	pyobd_beardedone55/obd_io.py	/^CLEAR_DTC_COMMAND = "04"$/;"	v
+ClearDTC	build/lib/pyobd_beardedone55/pyobdGUI.py	/^    def ClearDTC(self):$/;"	f
+ClearDTC	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^    def ClearDTC(self):$/;"	f
 ClearDTC	pyobd_beardedone55/pyobdGUI.py	/^    def ClearDTC(self):$/;"	f
+CodeLookup	build/lib/pyobd_beardedone55/pyobdGUI.py	/^    def CodeLookup(self):$/;"	f
+CodeLookup	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^    def CodeLookup(self):$/;"	f
 CodeLookup	pyobd_beardedone55/pyobdGUI.py	/^    def CodeLookup(self):$/;"	f
+Configure	build/lib/pyobd_beardedone55/pyobdGUI.py	/^    def Configure(self):$/;"	f
+Configure	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^    def Configure(self):$/;"	f
 Configure	pyobd_beardedone55/pyobdGUI.py	/^    def Configure(self):$/;"	f
+ConnectionError	build/lib/pyobd_beardedone55/obd_io.py	/^        def ConnectionError(count, msg = ''):$/;"	f	function:OBDPort.__init__
+ConnectionError	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_io.py	/^        def ConnectionError(count, msg = ''):$/;"	f	function:OBDPort.__init__
 ConnectionError	pyobd_beardedone55/obd_io.py	/^        def ConnectionError(count, msg = ''):$/;"	f	function:OBDPort.__init__
+CreateMenuItem	build/lib/pyobd_beardedone55/pyobdGUI.py	/^        def CreateMenuItem(ItemName, ToolTipText, ItemTrigger):$/;"	f	function:MyApp.OnInit
+CreateMenuItem	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^        def CreateMenuItem(ItemName, ToolTipText, ItemTrigger):$/;"	f	function:MyApp.OnInit
 CreateMenuItem	pyobd_beardedone55/pyobdGUI.py	/^        def CreateMenuItem(ItemName, ToolTipText, ItemTrigger):$/;"	f	function:MyApp.OnInit
+CustomSlots	build/lib/pyobd_beardedone55/pyobdGUI.py	/^        class CustomSlots(QObject):$/;"	c	class:MyApp.sensorProducer
+CustomSlots	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^        class CustomSlots(QObject):$/;"	c	class:MyApp.sensorProducer
 CustomSlots	pyobd_beardedone55/pyobdGUI.py	/^        class CustomSlots(QObject):$/;"	c	class:MyApp.sensorProducer
+DEB_PACKAGE_NAME	GNUmakefile	/^DEB_PACKAGE_NAME := python3-$(subst _,-,$(PACKAGE_NAME))$/;"	m
+DEB_VERSION	GNUmakefile	/^DEB_VERSION := $(shell head -1 debian\/changelog | sed 's\/^.*(\\(.*\\)).*$$\/\\1\/')$/;"	m
+DTCClearEvent	build/lib/pyobd_beardedone55/pyobdGUI.py	/^    DTCClearEvent = pyqtSignal(int)$/;"	v	class:MyApp
+DTCClearEvent	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^    DTCClearEvent = pyqtSignal(int)$/;"	v	class:MyApp
 DTCClearEvent	pyobd_beardedone55/pyobdGUI.py	/^    DTCClearEvent = pyqtSignal(int)$/;"	v	class:MyApp
+DTCEvent	build/lib/pyobd_beardedone55/pyobdGUI.py	/^    DTCEvent = pyqtSignal(list)$/;"	v	class:MyApp
+DTCEvent	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^    DTCEvent = pyqtSignal(list)$/;"	v	class:MyApp
 DTCEvent	pyobd_beardedone55/pyobdGUI.py	/^    DTCEvent = pyqtSignal(list)$/;"	v	class:MyApp
+DebugEvent	build/lib/pyobd_beardedone55/pyobdGUI.py	/^    DebugEvent = pyqtSignal(int,str)$/;"	v	class:MyApp
+DebugEvent	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^    DebugEvent = pyqtSignal(int,str)$/;"	v	class:MyApp
 DebugEvent	pyobd_beardedone55/pyobdGUI.py	/^    DebugEvent = pyqtSignal(int,str)$/;"	v	class:MyApp
+GET_DTC_COMMAND	build/lib/pyobd_beardedone55/obd_io.py	/^GET_DTC_COMMAND   = "03"$/;"	v
+GET_DTC_COMMAND	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_io.py	/^GET_DTC_COMMAND   = "03"$/;"	v
 GET_DTC_COMMAND	pyobd_beardedone55/obd_io.py	/^GET_DTC_COMMAND   = "03"$/;"	v
+GET_DTC_RESPONSE	build/lib/pyobd_beardedone55/obd_io.py	/^GET_DTC_RESPONSE = "43"$/;"	v
+GET_DTC_RESPONSE	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_io.py	/^GET_DTC_RESPONSE = "43"$/;"	v
 GET_DTC_RESPONSE	pyobd_beardedone55/obd_io.py	/^GET_DTC_RESPONSE = "43"$/;"	v
+GET_PENDING_DTC_COMMAND	build/lib/pyobd_beardedone55/obd_io.py	/^GET_PENDING_DTC_COMMAND = "07"$/;"	v
+GET_PENDING_DTC_COMMAND	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_io.py	/^GET_PENDING_DTC_COMMAND = "07"$/;"	v
 GET_PENDING_DTC_COMMAND	pyobd_beardedone55/obd_io.py	/^GET_PENDING_DTC_COMMAND = "07"$/;"	v
+GET_PENDING_DTC_RESPONSE	build/lib/pyobd_beardedone55/obd_io.py	/^GET_PENDING_DTC_RESPONSE = "47"$/;"	v
+GET_PENDING_DTC_RESPONSE	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_io.py	/^GET_PENDING_DTC_RESPONSE = "47"$/;"	v
 GET_PENDING_DTC_RESPONSE	pyobd_beardedone55/obd_io.py	/^GET_PENDING_DTC_RESPONSE = "47"$/;"	v
+GetDTC	build/lib/pyobd_beardedone55/pyobdGUI.py	/^    def GetDTC(self):$/;"	f
+GetDTC	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^    def GetDTC(self):$/;"	f
 GetDTC	pyobd_beardedone55/pyobdGUI.py	/^    def GetDTC(self):$/;"	f
+ID_ABOUT	build/lib/pyobd_beardedone55/pyobdGUI.py	/^ID_ABOUT  = 101$/;"	v
+ID_ABOUT	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^ID_ABOUT  = 101$/;"	v
 ID_ABOUT	pyobd_beardedone55/pyobdGUI.py	/^ID_ABOUT  = 101$/;"	v
+ID_CLEAR	build/lib/pyobd_beardedone55/pyobdGUI.py	/^ID_CLEAR  = 501$/;"	v
+ID_CLEAR	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^ID_CLEAR  = 501$/;"	v
 ID_CLEAR	pyobd_beardedone55/pyobdGUI.py	/^ID_CLEAR  = 501$/;"	v
+ID_CONFIG	build/lib/pyobd_beardedone55/pyobdGUI.py	/^ID_CONFIG = 500$/;"	v
+ID_CONFIG	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^ID_CONFIG = 500$/;"	v
 ID_CONFIG	pyobd_beardedone55/pyobdGUI.py	/^ID_CONFIG = 500$/;"	v
+ID_DISCONNECT	build/lib/pyobd_beardedone55/pyobdGUI.py	/^ID_DISCONNECT = 507$/;"	v
+ID_DISCONNECT	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^ID_DISCONNECT = 507$/;"	v
 ID_DISCONNECT	pyobd_beardedone55/pyobdGUI.py	/^ID_DISCONNECT = 507$/;"	v
+ID_EXIT	build/lib/pyobd_beardedone55/pyobdGUI.py	/^ID_EXIT   = 110$/;"	v
+ID_EXIT	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^ID_EXIT   = 110$/;"	v
 ID_EXIT	pyobd_beardedone55/pyobdGUI.py	/^ID_EXIT   = 110$/;"	v
+ID_GETC	build/lib/pyobd_beardedone55/pyobdGUI.py	/^ID_GETC   = 502$/;"	v
+ID_GETC	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^ID_GETC   = 502$/;"	v
 ID_GETC	pyobd_beardedone55/pyobdGUI.py	/^ID_GETC   = 502$/;"	v
+ID_HELP_ABOUT	build/lib/pyobd_beardedone55/pyobdGUI.py	/^ID_HELP_ABOUT = 508$/;"	v
+ID_HELP_ABOUT	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^ID_HELP_ABOUT = 508$/;"	v
 ID_HELP_ABOUT	pyobd_beardedone55/pyobdGUI.py	/^ID_HELP_ABOUT = 508$/;"	v
+ID_HELP_ORDER	build/lib/pyobd_beardedone55/pyobdGUI.py	/^ID_HELP_ORDER = 510$/;"	v
+ID_HELP_ORDER	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^ID_HELP_ORDER = 510$/;"	v
 ID_HELP_ORDER	pyobd_beardedone55/pyobdGUI.py	/^ID_HELP_ORDER = 510$/;"	v
+ID_HELP_VISIT	build/lib/pyobd_beardedone55/pyobdGUI.py	/^ID_HELP_VISIT = 509$/;"	v
+ID_HELP_VISIT	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^ID_HELP_VISIT = 509$/;"	v
 ID_HELP_VISIT	pyobd_beardedone55/pyobdGUI.py	/^ID_HELP_VISIT = 509$/;"	v
+ID_LOOK	build/lib/pyobd_beardedone55/pyobdGUI.py	/^ID_LOOK   = 504$/;"	v
+ID_LOOK	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^ID_LOOK   = 504$/;"	v
 ID_LOOK	pyobd_beardedone55/pyobdGUI.py	/^ID_LOOK   = 504$/;"	v
+ID_RESET	build/lib/pyobd_beardedone55/pyobdGUI.py	/^ID_RESET  = 503$/;"	v
+ID_RESET	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^ID_RESET  = 503$/;"	v
 ID_RESET	pyobd_beardedone55/pyobdGUI.py	/^ID_RESET  = 503$/;"	v
+INSTALL_OPTS	debian/rules	/^INSTALL_OPTS := --install-layout=deb --no-compile$/;"	m
+MyApp	build/lib/pyobd_beardedone55/pyobdGUI.py	/^class MyApp(QApplication):$/;"	c
+MyApp	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^class MyApp(QApplication):$/;"	c
 MyApp	pyobd_beardedone55/pyobdGUI.py	/^class MyApp(QApplication):$/;"	c
+MyListCtrl	build/lib/pyobd_beardedone55/pyobdGUI.py	/^    class MyListCtrl(QTableWidget):$/;"	c	class:MyApp
+MyListCtrl	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^    class MyListCtrl(QTableWidget):$/;"	c	class:MyApp
 MyListCtrl	pyobd_beardedone55/pyobdGUI.py	/^    class MyListCtrl(QTableWidget):$/;"	c	class:MyApp
+MyNumberInput	build/lib/pyobd_beardedone55/pyobdGUI.py	/^    class MyNumberInput(QLineEdit):$/;"	c	class:MyApp
+MyNumberInput	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^    class MyNumberInput(QLineEdit):$/;"	c	class:MyApp
 MyNumberInput	pyobd_beardedone55/pyobdGUI.py	/^    class MyNumberInput(QLineEdit):$/;"	c	class:MyApp
+MyPanel	build/lib/pyobd_beardedone55/pyobdGUI.py	/^    class MyPanel(QWidget):$/;"	c	class:MyApp
+MyPanel	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^    class MyPanel(QWidget):$/;"	c	class:MyApp
 MyPanel	pyobd_beardedone55/pyobdGUI.py	/^    class MyPanel(QWidget):$/;"	c	class:MyApp
+OBDPort	build/lib/pyobd_beardedone55/obd_io.py	/^class OBDPort:$/;"	c
+OBDPort	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_io.py	/^class OBDPort:$/;"	c
 OBDPort	pyobd_beardedone55/obd_io.py	/^class OBDPort:$/;"	c
+OnDebug	build/lib/pyobd_beardedone55/pyobdGUI.py	/^    def OnDebug(self, level, msg):$/;"	f
+OnDebug	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^    def OnDebug(self, level, msg):$/;"	f
 OnDebug	pyobd_beardedone55/pyobdGUI.py	/^    def OnDebug(self, level, msg):$/;"	f
+OnDisconnect	build/lib/pyobd_beardedone55/pyobdGUI.py	/^    def OnDisconnect(self): #disconnect connection to ECU$/;"	f
+OnDisconnect	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^    def OnDisconnect(self): #disconnect connection to ECU$/;"	f
 OnDisconnect	pyobd_beardedone55/pyobdGUI.py	/^    def OnDisconnect(self): #disconnect connection to ECU$/;"	f
+OnDtc	build/lib/pyobd_beardedone55/pyobdGUI.py	/^    def OnDtc(self,event):$/;"	f
+OnDtc	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^    def OnDtc(self,event):$/;"	f
 OnDtc	pyobd_beardedone55/pyobdGUI.py	/^    def OnDtc(self,event):$/;"	f
+OnDtcClear	build/lib/pyobd_beardedone55/pyobdGUI.py	/^    def OnDtcClear(self, event):$/;"	f
+OnDtcClear	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^    def OnDtcClear(self, event):$/;"	f
 OnDtcClear	pyobd_beardedone55/pyobdGUI.py	/^    def OnDtcClear(self, event):$/;"	f
+OnExit	build/lib/pyobd_beardedone55/pyobdGUI.py	/^    def OnExit(self):$/;"	f
+OnExit	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^    def OnExit(self):$/;"	f
 OnExit	pyobd_beardedone55/pyobdGUI.py	/^    def OnExit(self):$/;"	f
+OnHelpAbout	build/lib/pyobd_beardedone55/pyobdGUI.py	/^    def OnHelpAbout(self): #todo about box$/;"	m	class:MyApp
+OnHelpAbout	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^    def OnHelpAbout(self): #todo about box$/;"	m	class:MyApp
 OnHelpAbout	pyobd_beardedone55/pyobdGUI.py	/^    def OnHelpAbout(self): #todo about box$/;"	m	class:MyApp
+OnHelpOrder	build/lib/pyobd_beardedone55/pyobdGUI.py	/^    def OnHelpOrder(self):$/;"	m	class:MyApp
+OnHelpOrder	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^    def OnHelpOrder(self):$/;"	m	class:MyApp
 OnHelpOrder	pyobd_beardedone55/pyobdGUI.py	/^    def OnHelpOrder(self):$/;"	m	class:MyApp
+OnHelpVisit	build/lib/pyobd_beardedone55/pyobdGUI.py	/^    def OnHelpVisit(self):$/;"	m	class:MyApp
+OnHelpVisit	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^    def OnHelpVisit(self):$/;"	m	class:MyApp
 OnHelpVisit	pyobd_beardedone55/pyobdGUI.py	/^    def OnHelpVisit(self):$/;"	m	class:MyApp
+OnInit	build/lib/pyobd_beardedone55/pyobdGUI.py	/^    def OnInit(self):$/;"	m	class:MyApp
+OnInit	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^    def OnInit(self):$/;"	m	class:MyApp
 OnInit	pyobd_beardedone55/pyobdGUI.py	/^    def OnInit(self):$/;"	m	class:MyApp
+OnResult	build/lib/pyobd_beardedone55/pyobdGUI.py	/^    def OnResult(self,ecu,pid,column,data):$/;"	f
+OnResult	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^    def OnResult(self,ecu,pid,column,data):$/;"	f
 OnResult	pyobd_beardedone55/pyobdGUI.py	/^    def OnResult(self,ecu,pid,column,data):$/;"	f
+OnStatus	build/lib/pyobd_beardedone55/pyobdGUI.py	/^    def OnStatus(self,event):$/;"	f
+OnStatus	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^    def OnStatus(self,event):$/;"	f
 OnStatus	pyobd_beardedone55/pyobdGUI.py	/^    def OnStatus(self,event):$/;"	f
+OnTests	build/lib/pyobd_beardedone55/pyobdGUI.py	/^    def OnTests(self,event):$/;"	f
+OnTests	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^    def OnTests(self,event):$/;"	f
 OnTests	pyobd_beardedone55/pyobdGUI.py	/^    def OnTests(self,event):$/;"	f
+OpenPort	build/lib/pyobd_beardedone55/pyobdGUI.py	/^    def OpenPort(self):$/;"	f
+OpenPort	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^    def OpenPort(self):$/;"	f
 OpenPort	pyobd_beardedone55/pyobdGUI.py	/^    def OpenPort(self):$/;"	f
+PACKAGE_NAME	GNUmakefile	/^PACKAGE_NAME := pyobd_beardedone55$/;"	m
+PYOBD_DEB	GNUmakefile	/^PYOBD_DEB := ..\/$(DEB_PACKAGE_NAME)_$(DEB_VERSION)_all.deb$/;"	m
+PYOBD_DEPS	GNUmakefile	/^PYOBD_DEPS := pyobd_beardedone55\/__init__.py$/;"	m
+PYOBD_WHL	GNUmakefile	/^PYOBD_WHL := dist\/$(PACKAGE_NAME)-$(WHL_VERSION)-py3-none-any.whl$/;"	m
+QueryClear	build/lib/pyobd_beardedone55/pyobdGUI.py	/^    def QueryClear(self):$/;"	f
+QueryClear	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^    def QueryClear(self):$/;"	f
 QueryClear	pyobd_beardedone55/pyobdGUI.py	/^    def QueryClear(self):$/;"	f
+ResultEvent	build/lib/pyobd_beardedone55/pyobdGUI.py	/^    ResultEvent = pyqtSignal(str,int, int, str)$/;"	v	class:MyApp
+ResultEvent	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^    ResultEvent = pyqtSignal(str,int, int, str)$/;"	v	class:MyApp
 ResultEvent	pyobd_beardedone55/pyobdGUI.py	/^    ResultEvent = pyqtSignal(str,int, int, str)$/;"	v	class:MyApp
+SENSORS	build/lib/pyobd_beardedone55/obd_sensors.py	/^SENSORS = [$/;"	v
+SENSORS	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_sensors.py	/^SENSORS = [$/;"	v
 SENSORS	pyobd_beardedone55/obd_sensors.py	/^SENSORS = [$/;"	v
+SENSOR_OFF	build/lib/pyobd_beardedone55/pyobdGUI.py	/^        SENSOR_OFF = '1'$/;"	v	class:MyApp.SensorList
+SENSOR_OFF	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^        SENSOR_OFF = '1'$/;"	v	class:MyApp.SensorList
 SENSOR_OFF	pyobd_beardedone55/pyobdGUI.py	/^        SENSOR_OFF = '1'$/;"	v	class:MyApp.SensorList
+SENSOR_ON	build/lib/pyobd_beardedone55/pyobdGUI.py	/^        SENSOR_ON = '0'$/;"	v	class:MyApp.SensorList
+SENSOR_ON	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^        SENSOR_ON = '0'$/;"	v	class:MyApp.SensorList
 SENSOR_ON	pyobd_beardedone55/pyobdGUI.py	/^        SENSOR_ON = '0'$/;"	v	class:MyApp.SensorList
+SUPPORTED_PIDS	build/lib/pyobd_beardedone55/obd_sensors.py	/^SUPPORTED_PIDS = (0, 0x20, 0x40, 0x60, 0x80)$/;"	v
+SUPPORTED_PIDS	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_sensors.py	/^SUPPORTED_PIDS = (0, 0x20, 0x40, 0x60, 0x80)$/;"	v
 SUPPORTED_PIDS	pyobd_beardedone55/obd_sensors.py	/^SUPPORTED_PIDS = (0, 0x20, 0x40, 0x60, 0x80)$/;"	v
+Sensor	build/lib/pyobd_beardedone55/obd_sensors.py	/^class Sensor:$/;"	c
+Sensor	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_sensors.py	/^class Sensor:$/;"	c
 Sensor	pyobd_beardedone55/obd_sensors.py	/^class Sensor:$/;"	c
+SensorList	build/lib/pyobd_beardedone55/pyobdGUI.py	/^    class SensorList(MyListCtrl):$/;"	c	class:MyApp
+SensorList	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^    class SensorList(MyListCtrl):$/;"	c	class:MyApp
 SensorList	pyobd_beardedone55/pyobdGUI.py	/^    class SensorList(MyListCtrl):$/;"	c	class:MyApp
+SensorProducerReady	build/lib/pyobd_beardedone55/pyobdGUI.py	/^    SensorProducerReady = pyqtSignal()$/;"	v	class:MyApp
+SensorProducerReady	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^    SensorProducerReady = pyqtSignal()$/;"	v	class:MyApp
 SensorProducerReady	pyobd_beardedone55/pyobdGUI.py	/^    SensorProducerReady = pyqtSignal()$/;"	v	class:MyApp
+StatusEvent	build/lib/pyobd_beardedone55/pyobdGUI.py	/^    StatusEvent = pyqtSignal(list)$/;"	v	class:MyApp
+StatusEvent	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^    StatusEvent = pyqtSignal(list)$/;"	v	class:MyApp
 StatusEvent	pyobd_beardedone55/pyobdGUI.py	/^    StatusEvent = pyqtSignal(list)$/;"	v	class:MyApp
+TestEvent	build/lib/pyobd_beardedone55/pyobdGUI.py	/^    TestEvent = pyqtSignal(list)$/;"	v	class:MyApp
+TestEvent	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^    TestEvent = pyqtSignal(list)$/;"	v	class:MyApp
 TestEvent	pyobd_beardedone55/pyobdGUI.py	/^    TestEvent = pyqtSignal(list)$/;"	v	class:MyApp
+TestList	build/lib/pyobd_beardedone55/pyobdGUI.py	/^    class TestList(MyListCtrl):$/;"	c	class:MyApp
+TestList	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^    class TestList(MyListCtrl):$/;"	c	class:MyApp
 TestList	pyobd_beardedone55/pyobdGUI.py	/^    class TestList(MyListCtrl):$/;"	c	class:MyApp
+TraceDebug	build/lib/pyobd_beardedone55/pyobdGUI.py	/^    def TraceDebug(self,level,msg):$/;"	m	class:MyApp
+TraceDebug	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^    def TraceDebug(self,level,msg):$/;"	m	class:MyApp
 TraceDebug	pyobd_beardedone55/pyobdGUI.py	/^    def TraceDebug(self,level,msg):$/;"	m	class:MyApp
+WHL_VERSION	GNUmakefile	/^WHL_VERSION := $(shell .\/setup.py -V)$/;"	m
+__init__	build/lib/pyobd_beardedone55/obd_io.py	/^    def __init__(self,portnum,baudrate,_notify_window,SERTIMEOUT,RECONNATTEMPTS):$/;"	m	class:OBDPort
+__init__	build/lib/pyobd_beardedone55/obd_sensors.py	/^    def __init__(self,sensorName, sensorcommand, sensorValueFunction, u, length):$/;"	m	class:Sensor
+__init__	build/lib/pyobd_beardedone55/pyobdGUI.py	/^            def __init__(self):$/;"	m	class:MyApp.sensorProducer.CustomSlots
+__init__	build/lib/pyobd_beardedone55/pyobdGUI.py	/^        def __init__(self):$/;"	m	class:MyApp.TestList
+__init__	build/lib/pyobd_beardedone55/pyobdGUI.py	/^        def __init__(self, defaultText='', width=20):$/;"	m	class:MyApp.MyNumberInput
+__init__	build/lib/pyobd_beardedone55/pyobdGUI.py	/^        def __init__(self, ecu):$/;"	m	class:MyApp.SensorList
+__init__	build/lib/pyobd_beardedone55/pyobdGUI.py	/^        def __init__(self, sortable=True):$/;"	m	class:MyApp.MyListCtrl
+__init__	build/lib/pyobd_beardedone55/pyobdGUI.py	/^        def __init__(self, widget=None):$/;"	m	class:MyApp.MyPanel
+__init__	build/lib/pyobd_beardedone55/pyobdGUI.py	/^        def __init__(self,_notify_window):$/;"	m	class:MyApp.sensorProducer
+__init__	build/lib/pyobd_beardedone55/pyobdGUI.py	/^    def __init__(self, myArgs):$/;"	m	class:MyApp
+__init__	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_io.py	/^    def __init__(self,portnum,baudrate,_notify_window,SERTIMEOUT,RECONNATTEMPTS):$/;"	m	class:OBDPort
+__init__	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_sensors.py	/^    def __init__(self,sensorName, sensorcommand, sensorValueFunction, u, length):$/;"	m	class:Sensor
+__init__	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^            def __init__(self):$/;"	m	class:MyApp.sensorProducer.CustomSlots
+__init__	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^        def __init__(self):$/;"	m	class:MyApp.TestList
+__init__	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^        def __init__(self, defaultText='', width=20):$/;"	m	class:MyApp.MyNumberInput
+__init__	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^        def __init__(self, ecu):$/;"	m	class:MyApp.SensorList
+__init__	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^        def __init__(self, sortable=True):$/;"	m	class:MyApp.MyListCtrl
+__init__	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^        def __init__(self, widget=None):$/;"	m	class:MyApp.MyPanel
+__init__	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^        def __init__(self,_notify_window):$/;"	m	class:MyApp.sensorProducer
+__init__	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^    def __init__(self, myArgs):$/;"	m	class:MyApp
 __init__	pyobd_beardedone55/obd_io.py	/^    def __init__(self,portnum,baudrate,_notify_window,SERTIMEOUT,RECONNATTEMPTS):$/;"	m	class:OBDPort
 __init__	pyobd_beardedone55/obd_sensors.py	/^    def __init__(self,sensorName, sensorcommand, sensorValueFunction, u, length):$/;"	m	class:Sensor
 __init__	pyobd_beardedone55/pyobdGUI.py	/^            def __init__(self):$/;"	m	class:MyApp.sensorProducer.CustomSlots
@@ -73,106 +219,293 @@ __init__	pyobd_beardedone55/pyobdGUI.py	/^        def __init__(self, sortable=Tr
 __init__	pyobd_beardedone55/pyobdGUI.py	/^        def __init__(self, widget=None):$/;"	m	class:MyApp.MyPanel
 __init__	pyobd_beardedone55/pyobdGUI.py	/^        def __init__(self,_notify_window):$/;"	m	class:MyApp.sensorProducer
 __init__	pyobd_beardedone55/pyobdGUI.py	/^    def __init__(self, myArgs):$/;"	m	class:MyApp
+abs_load_percent	build/lib/pyobd_beardedone55/obd_sensors.py	/^def abs_load_percent(code):$/;"	f
+abs_load_percent	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_sensors.py	/^def abs_load_percent(code):$/;"	f
 abs_load_percent	pyobd_beardedone55/obd_sensors.py	/^def abs_load_percent(code):$/;"	f
+abs_vapor_pres	build/lib/pyobd_beardedone55/obd_sensors.py	/^def abs_vapor_pres(code):$/;"	f
+abs_vapor_pres	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_sensors.py	/^def abs_vapor_pres(code):$/;"	f
 abs_vapor_pres	pyobd_beardedone55/obd_sensors.py	/^def abs_vapor_pres(code):$/;"	f
+addTableRow	build/lib/pyobd_beardedone55/pyobdGUI.py	/^        def addTableRow(self, rowSize, data):$/;"	m	class:MyApp.SensorList
+addTableRow	build/lib/pyobd_beardedone55/pyobdGUI.py	/^        def addTableRow(self, rowSize, data):$/;"	m	class:MyApp.TestList
+addTableRow	build/lib/pyobd_beardedone55/pyobdGUI.py	/^        def addTableRow(self, rowSize, data, bold=False, italic=False, alignment=Qt.AlignLeft):$/;"	m	class:MyApp.MyListCtrl
+addTableRow	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^        def addTableRow(self, rowSize, data):$/;"	m	class:MyApp.SensorList
+addTableRow	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^        def addTableRow(self, rowSize, data):$/;"	m	class:MyApp.TestList
+addTableRow	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^        def addTableRow(self, rowSize, data, bold=False, italic=False, alignment=Qt.AlignLeft):$/;"	m	class:MyApp.MyListCtrl
 addTableRow	pyobd_beardedone55/pyobdGUI.py	/^        def addTableRow(self, rowSize, data):$/;"	m	class:MyApp.SensorList
 addTableRow	pyobd_beardedone55/pyobdGUI.py	/^        def addTableRow(self, rowSize, data):$/;"	m	class:MyApp.TestList
 addTableRow	pyobd_beardedone55/pyobdGUI.py	/^        def addTableRow(self, rowSize, data, bold=False, italic=False, alignment=Qt.AlignLeft):$/;"	m	class:MyApp.MyListCtrl
+add_sensor_table	build/lib/pyobd_beardedone55/pyobdGUI.py	/^    def add_sensor_table(self, title, ecu, supp):$/;"	m	class:MyApp
+add_sensor_table	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^    def add_sensor_table(self, title, ecu, supp):$/;"	m	class:MyApp
 add_sensor_table	pyobd_beardedone55/pyobdGUI.py	/^    def add_sensor_table(self, title, ecu, supp):$/;"	m	class:MyApp
+all_off	build/lib/pyobd_beardedone55/pyobdGUI.py	/^        def all_off(self, ecu):$/;"	m	class:MyApp.sensorProducer
+all_off	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^        def all_off(self, ecu):$/;"	m	class:MyApp.sensorProducer
 all_off	pyobd_beardedone55/pyobdGUI.py	/^        def all_off(self, ecu):$/;"	m	class:MyApp.sensorProducer
 author	setup.py	/^    author="Brian LePage",$/;"	v
 author_email	setup.py	/^    author_email="bjlepage22@gmail.com",$/;"	v
+build_DTC_page	build/lib/pyobd_beardedone55/pyobdGUI.py	/^    def build_DTC_page(self):$/;"	m	class:MyApp
+build_DTC_page	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^    def build_DTC_page(self):$/;"	m	class:MyApp
 build_DTC_page	pyobd_beardedone55/pyobdGUI.py	/^    def build_DTC_page(self):$/;"	m	class:MyApp
+build_sensor_page	build/lib/pyobd_beardedone55/pyobdGUI.py	/^    def build_sensor_page(self):$/;"	m	class:MyApp
+build_sensor_page	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^    def build_sensor_page(self):$/;"	m	class:MyApp
 build_sensor_page	pyobd_beardedone55/pyobdGUI.py	/^    def build_sensor_page(self):$/;"	m	class:MyApp
 classifiers	setup.py	/^    classifiers=[$/;"	v
+clear_dtc	build/lib/pyobd_beardedone55/obd_io.py	/^    def clear_dtc(self):$/;"	m	class:OBDPort
+clear_dtc	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_io.py	/^    def clear_dtc(self):$/;"	m	class:OBDPort
 clear_dtc	pyobd_beardedone55/obd_io.py	/^    def clear_dtc(self):$/;"	m	class:OBDPort
+close	build/lib/pyobd_beardedone55/obd_io.py	/^    def close(self):$/;"	m	class:OBDPort
+close	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_io.py	/^    def close(self):$/;"	m	class:OBDPort
 close	pyobd_beardedone55/obd_io.py	/^    def close(self):$/;"	m	class:OBDPort
+cm_voltage	build/lib/pyobd_beardedone55/obd_sensors.py	/^def cm_voltage(code):$/;"	f
+cm_voltage	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_sensors.py	/^def cm_voltage(code):$/;"	f
 cm_voltage	pyobd_beardedone55/obd_sensors.py	/^def cm_voltage(code):$/;"	f
+connectSlots	build/lib/pyobd_beardedone55/pyobdGUI.py	/^            def connectSlots(self, parent):$/;"	m	class:MyApp.sensorProducer.CustomSlots
+connectSlots	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^            def connectSlots(self, parent):$/;"	m	class:MyApp.sensorProducer.CustomSlots
 connectSlots	pyobd_beardedone55/pyobdGUI.py	/^            def connectSlots(self, parent):$/;"	m	class:MyApp.sensorProducer.CustomSlots
+cpass	build/lib/pyobd_beardedone55/obd_sensors.py	/^def cpass(code):$/;"	f
+cpass	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_sensors.py	/^def cpass(code):$/;"	f
 cpass	pyobd_beardedone55/obd_sensors.py	/^def cpass(code):$/;"	f
 description	setup.py	/^    description="An automotive diagnostic tool for OBDII",$/;"	v
+disconnectSlots	build/lib/pyobd_beardedone55/pyobdGUI.py	/^            def disconnectSlots(self):$/;"	m	class:MyApp.sensorProducer.CustomSlots
+disconnectSlots	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^            def disconnectSlots(self):$/;"	m	class:MyApp.sensorProducer.CustomSlots
 disconnectSlots	pyobd_beardedone55/pyobdGUI.py	/^            def disconnectSlots(self):$/;"	m	class:MyApp.sensorProducer.CustomSlots
+dtc_decrypt	build/lib/pyobd_beardedone55/obd_sensors.py	/^def dtc_decrypt(code):$/;"	f
+dtc_decrypt	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_sensors.py	/^def dtc_decrypt(code):$/;"	f
 dtc_decrypt	pyobd_beardedone55/obd_sensors.py	/^def dtc_decrypt(code):$/;"	f
+eq_ratio	build/lib/pyobd_beardedone55/obd_sensors.py	/^def eq_ratio(code):$/;"	f
+eq_ratio	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_sensors.py	/^def eq_ratio(code):$/;"	f
 eq_ratio	pyobd_beardedone55/obd_sensors.py	/^def eq_ratio(code):$/;"	f
+evap_pres	build/lib/pyobd_beardedone55/obd_sensors.py	/^def evap_pres(code):$/;"	f
+evap_pres	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_sensors.py	/^def evap_pres(code):$/;"	f
 evap_pres	pyobd_beardedone55/obd_sensors.py	/^def evap_pres(code):$/;"	f
+evap_pres2	build/lib/pyobd_beardedone55/obd_sensors.py	/^def evap_pres2(code):$/;"	f
+evap_pres2	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_sensors.py	/^def evap_pres2(code):$/;"	f
 evap_pres2	pyobd_beardedone55/obd_sensors.py	/^def evap_pres2(code):$/;"	f
+exitCleanup	build/lib/pyobd_beardedone55/pyobdGUI.py	/^    def exitCleanup(self):$/;"	f
+exitCleanup	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^    def exitCleanup(self):$/;"	f
 exitCleanup	pyobd_beardedone55/pyobdGUI.py	/^    def exitCleanup(self):$/;"	f
+fuel_pres	build/lib/pyobd_beardedone55/obd_sensors.py	/^def fuel_pres(code): # in 3kPa$/;"	f
+fuel_pres	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_sensors.py	/^def fuel_pres(code): # in 3kPa$/;"	f
 fuel_pres	pyobd_beardedone55/obd_sensors.py	/^def fuel_pres(code): # in 3kPa$/;"	f
+fuel_pres_10	build/lib/pyobd_beardedone55/obd_sensors.py	/^def fuel_pres_10(code): # in 10kPa$/;"	f
+fuel_pres_10	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_sensors.py	/^def fuel_pres_10(code): # in 10kPa$/;"	f
 fuel_pres_10	pyobd_beardedone55/obd_sensors.py	/^def fuel_pres_10(code): # in 10kPa$/;"	f
+fuel_rate	build/lib/pyobd_beardedone55/obd_sensors.py	/^def fuel_rate(code):$/;"	f
+fuel_rate	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_sensors.py	/^def fuel_rate(code):$/;"	f
 fuel_rate	pyobd_beardedone55/obd_sensors.py	/^def fuel_rate(code):$/;"	f
+fuel_trim_percent	build/lib/pyobd_beardedone55/obd_sensors.py	/^def fuel_trim_percent(code):$/;"	f
+fuel_trim_percent	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_sensors.py	/^def fuel_trim_percent(code):$/;"	f
 fuel_trim_percent	pyobd_beardedone55/obd_sensors.py	/^def fuel_trim_percent(code):$/;"	f
+getEcuNum	build/lib/pyobd_beardedone55/obd_io.py	/^    def getEcuNum(self, ecuAddress):$/;"	m	class:OBDPort
+getEcuNum	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_io.py	/^    def getEcuNum(self, ecuAddress):$/;"	m	class:OBDPort
 getEcuNum	pyobd_beardedone55/obd_io.py	/^    def getEcuNum(self, ecuAddress):$/;"	m	class:OBDPort
+getPid	build/lib/pyobd_beardedone55/pyobdGUI.py	/^        def getPid(self, row):$/;"	m	class:MyApp.SensorList
+getPid	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^        def getPid(self, row):$/;"	m	class:MyApp.SensorList
 getPid	pyobd_beardedone55/pyobdGUI.py	/^        def getPid(self, row):$/;"	m	class:MyApp.SensorList
+get_dtc	build/lib/pyobd_beardedone55/obd_io.py	/^    def get_dtc(self):$/;"	m	class:OBDPort
+get_dtc	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_io.py	/^    def get_dtc(self):$/;"	m	class:OBDPort
 get_dtc	pyobd_beardedone55/obd_io.py	/^    def get_dtc(self):$/;"	m	class:OBDPort
+get_obd_data_bytes	build/lib/pyobd_beardedone55/obd_io.py	/^    def get_obd_data_bytes(self):$/;"	m	class:OBDPort
+get_obd_data_bytes	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_io.py	/^    def get_obd_data_bytes(self):$/;"	m	class:OBDPort
 get_obd_data_bytes	pyobd_beardedone55/obd_io.py	/^    def get_obd_data_bytes(self):$/;"	m	class:OBDPort
+get_result	build/lib/pyobd_beardedone55/obd_io.py	/^    def get_result(self):$/;"	m	class:OBDPort
+get_result	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_io.py	/^    def get_result(self):$/;"	m	class:OBDPort
 get_result	pyobd_beardedone55/obd_io.py	/^    def get_result(self):$/;"	m	class:OBDPort
+get_sensor_value	build/lib/pyobd_beardedone55/obd_io.py	/^    def get_sensor_value(self,sensor,ecu):$/;"	m	class:OBDPort
+get_sensor_value	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_io.py	/^    def get_sensor_value(self,sensor,ecu):$/;"	m	class:OBDPort
 get_sensor_value	pyobd_beardedone55/obd_io.py	/^    def get_sensor_value(self,sensor,ecu):$/;"	m	class:OBDPort
+get_sensors	build/lib/pyobd_beardedone55/obd_io.py	/^    def get_sensors(self, sensor_index_list, ecu = None, mode = '01', sensors = obd_sensors.SENSORS):$/;"	m	class:OBDPort
+get_sensors	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_io.py	/^    def get_sensors(self, sensor_index_list, ecu = None, mode = '01', sensors = obd_sensors.SENSORS):$/;"	m	class:OBDPort
 get_sensors	pyobd_beardedone55/obd_io.py	/^    def get_sensors(self, sensor_index_list, ecu = None, mode = '01', sensors = obd_sensors.SENSORS):$/;"	m	class:OBDPort
+get_supported	build/lib/pyobd_beardedone55/obd_io.py	/^    def get_supported(self, ecu, mode = '01', supported_pids = obd_sensors.SUPPORTED_PIDS):$/;"	m	class:OBDPort
+get_supported	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_io.py	/^    def get_supported(self, ecu, mode = '01', supported_pids = obd_sensors.SUPPORTED_PIDS):$/;"	m	class:OBDPort
 get_supported	pyobd_beardedone55/obd_io.py	/^    def get_supported(self, ecu, mode = '01', supported_pids = obd_sensors.SUPPORTED_PIDS):$/;"	m	class:OBDPort
+get_tests	build/lib/pyobd_beardedone55/obd_io.py	/^    def get_tests(self, ecu, test_pid = 0x01):$/;"	m	class:OBDPort
+get_tests	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_io.py	/^    def get_tests(self, ecu, test_pid = 0x01):$/;"	m	class:OBDPort
 get_tests	pyobd_beardedone55/obd_io.py	/^    def get_tests(self, ecu, test_pid = 0x01):$/;"	m	class:OBDPort
+get_tests_MIL	build/lib/pyobd_beardedone55/obd_io.py	/^    def get_tests_MIL(self):$/;"	m	class:OBDPort
+get_tests_MIL	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_io.py	/^    def get_tests_MIL(self):$/;"	m	class:OBDPort
 get_tests_MIL	pyobd_beardedone55/obd_io.py	/^    def get_tests_MIL(self):$/;"	m	class:OBDPort
+get_vin	build/lib/pyobd_beardedone55/obd_io.py	/^    def get_vin(self, ecu):$/;"	m	class:OBDPort
+get_vin	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_io.py	/^    def get_vin(self, ecu):$/;"	m	class:OBDPort
 get_vin	pyobd_beardedone55/obd_io.py	/^    def get_vin(self, ecu):$/;"	m	class:OBDPort
+hex_to_bitstring	build/lib/pyobd_beardedone55/obd_sensors.py	/^def hex_to_bitstring(hexstr):$/;"	f
+hex_to_bitstring	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_sensors.py	/^def hex_to_bitstring(hexstr):$/;"	f
 hex_to_bitstring	pyobd_beardedone55/obd_sensors.py	/^def hex_to_bitstring(hexstr):$/;"	f
+hex_to_int	build/lib/pyobd_beardedone55/obd_sensors.py	/^def hex_to_int(hexstr):$/;"	f
+hex_to_int	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_sensors.py	/^def hex_to_int(hexstr):$/;"	f
 hex_to_int	pyobd_beardedone55/obd_sensors.py	/^def hex_to_int(hexstr):$/;"	f
+include_package_data	setup.py	/^    include_package_data=True,$/;"	v
+initCommunication	build/lib/pyobd_beardedone55/pyobdGUI.py	/^    def initCommunication(self):$/;"	m	class:MyApp
+initCommunication	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^    def initCommunication(self):$/;"	m	class:MyApp
 initCommunication	pyobd_beardedone55/pyobdGUI.py	/^    def initCommunication(self):$/;"	m	class:MyApp
+injection_timing	build/lib/pyobd_beardedone55/obd_sensors.py	/^def injection_timing(code):$/;"	f
+injection_timing	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_sensors.py	/^def injection_timing(code):$/;"	f
 injection_timing	pyobd_beardedone55/obd_sensors.py	/^def injection_timing(code):$/;"	f
+install_requires	setup.py	/^    install_requires=[$/;"	v
+intake_m_pres	build/lib/pyobd_beardedone55/obd_sensors.py	/^def intake_m_pres(code): # in kPa$/;"	f
+intake_m_pres	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_sensors.py	/^def intake_m_pres(code): # in kPa$/;"	f
 intake_m_pres	pyobd_beardedone55/obd_sensors.py	/^def intake_m_pres(code): # in kPa$/;"	f
+interpret_result	build/lib/pyobd_beardedone55/obd_io.py	/^    def interpret_result(self,data,ecu):$/;"	m	class:OBDPort
+interpret_result	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_io.py	/^    def interpret_result(self,data,ecu):$/;"	m	class:OBDPort
 interpret_result	pyobd_beardedone55/obd_io.py	/^    def interpret_result(self,data,ecu):$/;"	m	class:OBDPort
+km_to_mi	build/lib/pyobd_beardedone55/obd_sensors.py	/^def km_to_mi(code):$/;"	f
+km_to_mi	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_sensors.py	/^def km_to_mi(code):$/;"	f
 km_to_mi	pyobd_beardedone55/obd_sensors.py	/^def km_to_mi(code):$/;"	f
+log	build/lib/pyobd_beardedone55/obd_io.py	/^    def log(self, sensor_index, filename):$/;"	m	class:OBDPort
+log	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_io.py	/^    def log(self, sensor_index, filename):$/;"	m	class:OBDPort
 log	pyobd_beardedone55/obd_io.py	/^    def log(self, sensor_index, filename):$/;"	m	class:OBDPort
 long_description	setup.py	/^    long_description = fh.read()$/;"	v
 long_description	setup.py	/^    long_description=long_description,$/;"	v
 long_description_content_type	setup.py	/^    long_description_content_type="text\/markdown",$/;"	v
+maf	build/lib/pyobd_beardedone55/obd_sensors.py	/^def maf(code):$/;"	f
+maf	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_sensors.py	/^def maf(code):$/;"	f
 maf	pyobd_beardedone55/obd_sensors.py	/^def maf(code):$/;"	f
 name	setup.py	/^    name="pyobd-beardedone55",$/;"	v
+off	build/lib/pyobd_beardedone55/pyobdGUI.py	/^        def off(self, pid, ecu):$/;"	m	class:MyApp.sensorProducer
+off	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^        def off(self, pid, ecu):$/;"	m	class:MyApp.sensorProducer
 off	pyobd_beardedone55/pyobdGUI.py	/^        def off(self, pid, ecu):$/;"	m	class:MyApp.sensorProducer
+ol_cl	build/lib/pyobd_beardedone55/obd_sensors.py	/^def ol_cl(code):$/;"	f
+ol_cl	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_sensors.py	/^def ol_cl(code):$/;"	f
 ol_cl	pyobd_beardedone55/obd_sensors.py	/^def ol_cl(code):$/;"	f
+ol_cl_convert	build/lib/pyobd_beardedone55/obd_sensors.py	/^    def ol_cl_convert(byte):$/;"	f	function:ol_cl
+ol_cl_convert	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_sensors.py	/^    def ol_cl_convert(byte):$/;"	f	function:ol_cl
 ol_cl_convert	pyobd_beardedone55/obd_sensors.py	/^    def ol_cl_convert(byte):$/;"	f	function:ol_cl
+on	build/lib/pyobd_beardedone55/pyobdGUI.py	/^        def on(self, pid, ecu):$/;"	m	class:MyApp.sensorProducer
+on	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^        def on(self, pid, ecu):$/;"	m	class:MyApp.sensorProducer
 on	pyobd_beardedone55/pyobdGUI.py	/^        def on(self, pid, ecu):$/;"	m	class:MyApp.sensorProducer
+onTestDTC	build/lib/pyobd_beardedone55/pyobdGUI.py	/^    def onTestDTC(self):$/;"	f
+onTestDTC	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^    def onTestDTC(self):$/;"	f
 onTestDTC	pyobd_beardedone55/pyobdGUI.py	/^    def onTestDTC(self):$/;"	f
 packages	setup.py	/^    packages=setuptools.find_packages(),$/;"	v
+parse_get_dtc_data	build/lib/pyobd_beardedone55/obd_io.py	/^        def parse_get_dtc_data(res, DTCCodes, DTCType, dtcNumber=None):$/;"	f	function:OBDPort.get_dtc
+parse_get_dtc_data	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_io.py	/^        def parse_get_dtc_data(res, DTCCodes, DTCType, dtcNumber=None):$/;"	f	function:OBDPort.get_dtc
 parse_get_dtc_data	pyobd_beardedone55/obd_io.py	/^        def parse_get_dtc_data(res, DTCCodes, DTCType, dtcNumber=None):$/;"	f	function:OBDPort.get_dtc
+pcode_classes	build/lib/pyobd_beardedone55/obd2_codes.py	/^pcode_classes = {$/;"	v
+pcode_classes	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd2_codes.py	/^pcode_classes = {$/;"	v
 pcode_classes	pyobd_beardedone55/obd2_codes.py	/^pcode_classes = {$/;"	v
+pcodes	build/lib/pyobd_beardedone55/obd2_codes.py	/^pcodes = {$/;"	v
+pcodes	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd2_codes.py	/^pcodes = {$/;"	v
 pcodes	pyobd_beardedone55/obd2_codes.py	/^pcodes = {$/;"	v
+percent_scale	build/lib/pyobd_beardedone55/obd_sensors.py	/^def percent_scale(code):$/;"	f
+percent_scale	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_sensors.py	/^def percent_scale(code):$/;"	f
 percent_scale	pyobd_beardedone55/obd_sensors.py	/^def percent_scale(code):$/;"	f
+ptest	build/lib/pyobd_beardedone55/obd2_codes.py	/^ptest= [$/;"	v
+ptest	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd2_codes.py	/^ptest= [$/;"	v
 ptest	pyobd_beardedone55/obd2_codes.py	/^ptest= [$/;"	v
+ref_torque	build/lib/pyobd_beardedone55/obd_sensors.py	/^def ref_torque(code):$/;"	f
+ref_torque	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_sensors.py	/^def ref_torque(code):$/;"	f
 ref_torque	pyobd_beardedone55/obd_sensors.py	/^def ref_torque(code):$/;"	f
+rel_fuel_pres	build/lib/pyobd_beardedone55/obd_sensors.py	/^def rel_fuel_pres(code): #in 0.079 kPa$/;"	f
+rel_fuel_pres	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_sensors.py	/^def rel_fuel_pres(code): #in 0.079 kPa$/;"	f
 rel_fuel_pres	pyobd_beardedone55/obd_sensors.py	/^def rel_fuel_pres(code): #in 0.079 kPa$/;"	f
+req_torque	build/lib/pyobd_beardedone55/obd_sensors.py	/^def req_torque(code):$/;"	f
+req_torque	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_sensors.py	/^def req_torque(code):$/;"	f
 req_torque	pyobd_beardedone55/obd_sensors.py	/^def req_torque(code):$/;"	f
+rpm	build/lib/pyobd_beardedone55/obd_sensors.py	/^def rpm(code):$/;"	f
+rpm	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_sensors.py	/^def rpm(code):$/;"	f
 rpm	pyobd_beardedone55/obd_sensors.py	/^def rpm(code):$/;"	f
+run	build/lib/pyobd_beardedone55/pyobdGUI.py	/^        def run(self):$/;"	m	class:MyApp.sensorProducer
+run	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^        def run(self):$/;"	m	class:MyApp.sensorProducer
 run	pyobd_beardedone55/pyobdGUI.py	/^        def run(self):$/;"	m	class:MyApp.sensorProducer
+scanSerial	build/lib/pyobd_beardedone55/pyobdGUI.py	/^    def scanSerial(self):$/;"	f
+scanSerial	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^    def scanSerial(self):$/;"	f
 scanSerial	pyobd_beardedone55/pyobdGUI.py	/^    def scanSerial(self):$/;"	f
+scripts	setup.py	/^    scripts=[$/;"	v
+sec_to_min	build/lib/pyobd_beardedone55/obd_sensors.py	/^def sec_to_min(code):$/;"	f
+sec_to_min	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_sensors.py	/^def sec_to_min(code):$/;"	f
 sec_to_min	pyobd_beardedone55/obd_sensors.py	/^def sec_to_min(code):$/;"	f
+selectEcu	build/lib/pyobd_beardedone55/pyobdGUI.py	/^        def selectEcu(self, ecu):$/;"	m	class:MyApp.sensorProducer
+selectEcu	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^        def selectEcu(self, ecu):$/;"	m	class:MyApp.sensorProducer
 selectEcu	pyobd_beardedone55/pyobdGUI.py	/^        def selectEcu(self, ecu):$/;"	m	class:MyApp.sensorProducer
+send_command	build/lib/pyobd_beardedone55/obd_io.py	/^    def send_command(self, cmd):$/;"	m	class:OBDPort
+send_command	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_io.py	/^    def send_command(self, cmd):$/;"	m	class:OBDPort
 send_command	pyobd_beardedone55/obd_io.py	/^    def send_command(self, cmd):$/;"	m	class:OBDPort
+sensor	build/lib/pyobd_beardedone55/obd_io.py	/^    def sensor(self , sensor_index, ecu = None, mode = None, sensors = obd_sensors.SENSORS):$/;"	m	class:OBDPort
+sensor	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_io.py	/^    def sensor(self , sensor_index, ecu = None, mode = None, sensors = obd_sensors.SENSORS):$/;"	m	class:OBDPort
 sensor	pyobd_beardedone55/obd_io.py	/^    def sensor(self , sensor_index, ecu = None, mode = None, sensors = obd_sensors.SENSORS):$/;"	m	class:OBDPort
+sensorAllOffEvent	build/lib/pyobd_beardedone55/pyobdGUI.py	/^            sensorAllOffEvent = pyqtSignal(str)$/;"	v	class:MyApp.sensorProducer.CustomSlots
+sensorAllOffEvent	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^            sensorAllOffEvent = pyqtSignal(str)$/;"	v	class:MyApp.sensorProducer.CustomSlots
 sensorAllOffEvent	pyobd_beardedone55/pyobdGUI.py	/^            sensorAllOffEvent = pyqtSignal(str)$/;"	v	class:MyApp.sensorProducer.CustomSlots
+sensorOffEvent	build/lib/pyobd_beardedone55/pyobdGUI.py	/^            sensorOffEvent = pyqtSignal(int,str)$/;"	v	class:MyApp.sensorProducer.CustomSlots
+sensorOffEvent	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^            sensorOffEvent = pyqtSignal(int,str)$/;"	v	class:MyApp.sensorProducer.CustomSlots
 sensorOffEvent	pyobd_beardedone55/pyobdGUI.py	/^            sensorOffEvent = pyqtSignal(int,str)$/;"	v	class:MyApp.sensorProducer.CustomSlots
+sensorOnEvent	build/lib/pyobd_beardedone55/pyobdGUI.py	/^            sensorOnEvent = pyqtSignal(int,str)$/;"	v	class:MyApp.sensorProducer.CustomSlots
+sensorOnEvent	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^            sensorOnEvent = pyqtSignal(int,str)$/;"	v	class:MyApp.sensorProducer.CustomSlots
 sensorOnEvent	pyobd_beardedone55/pyobdGUI.py	/^            sensorOnEvent = pyqtSignal(int,str)$/;"	v	class:MyApp.sensorProducer.CustomSlots
+sensorProducer	build/lib/pyobd_beardedone55/pyobdGUI.py	/^    class sensorProducer(QThread):$/;"	c	class:MyApp
+sensorProducer	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^    class sensorProducer(QThread):$/;"	c	class:MyApp
 sensorProducer	pyobd_beardedone55/pyobdGUI.py	/^    class sensorProducer(QThread):$/;"	c	class:MyApp
+sensorTabClicked	build/lib/pyobd_beardedone55/pyobdGUI.py	/^    def sensorTabClicked(self, tabNum):$/;"	m	class:MyApp
+sensorTabClicked	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^    def sensorTabClicked(self, tabNum):$/;"	m	class:MyApp
 sensorTabClicked	pyobd_beardedone55/pyobdGUI.py	/^    def sensorTabClicked(self, tabNum):$/;"	m	class:MyApp
+sensorTabEvent	build/lib/pyobd_beardedone55/pyobdGUI.py	/^            sensorTabEvent = pyqtSignal(str)$/;"	v	class:MyApp.sensorProducer.CustomSlots
+sensorTabEvent	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^            sensorTabEvent = pyqtSignal(str)$/;"	v	class:MyApp.sensorProducer.CustomSlots
 sensorTabEvent	pyobd_beardedone55/pyobdGUI.py	/^            sensorTabEvent = pyqtSignal(str)$/;"	v	class:MyApp.sensorProducer.CustomSlots
+sensor_control_off	build/lib/pyobd_beardedone55/pyobdGUI.py	/^    def sensor_control_off(self): #after disconnect disable fer buttons$/;"	m	class:MyApp
+sensor_control_off	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^    def sensor_control_off(self): #after disconnect disable fer buttons$/;"	m	class:MyApp
 sensor_control_off	pyobd_beardedone55/pyobdGUI.py	/^    def sensor_control_off(self): #after disconnect disable fer buttons$/;"	m	class:MyApp
+sensor_control_on	build/lib/pyobd_beardedone55/pyobdGUI.py	/^    def sensor_control_on(self): #after connection enable few buttons$/;"	m	class:MyApp
+sensor_control_on	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^    def sensor_control_on(self): #after connection enable few buttons$/;"	m	class:MyApp
 sensor_control_on	pyobd_beardedone55/pyobdGUI.py	/^    def sensor_control_on(self): #after connection enable few buttons$/;"	m	class:MyApp
+sensor_names	build/lib/pyobd_beardedone55/obd_io.py	/^    def sensor_names(self):$/;"	m	class:OBDPort
+sensor_names	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_io.py	/^    def sensor_names(self):$/;"	m	class:OBDPort
 sensor_names	pyobd_beardedone55/obd_io.py	/^    def sensor_names(self):$/;"	m	class:OBDPort
+sensor_toggle	build/lib/pyobd_beardedone55/pyobdGUI.py	/^        def sensor_toggle(self, row, col):$/;"	m	class:MyApp.SensorList
+sensor_toggle	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^        def sensor_toggle(self, row, col):$/;"	m	class:MyApp.SensorList
 sensor_toggle	pyobd_beardedone55/pyobdGUI.py	/^        def sensor_toggle(self, row, col):$/;"	m	class:MyApp.SensorList
+sensor_voltage	build/lib/pyobd_beardedone55/obd_sensors.py	/^def sensor_voltage(code):$/;"	f
+sensor_voltage	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_sensors.py	/^def sensor_voltage(code):$/;"	f
 sensor_voltage	pyobd_beardedone55/obd_sensors.py	/^def sensor_voltage(code):$/;"	f
+setColumnCount	build/lib/pyobd_beardedone55/pyobdGUI.py	/^        def setColumnCount(self, columns):$/;"	m	class:MyApp.MyListCtrl
+setColumnCount	build/lib/pyobd_beardedone55/pyobdGUI.py	/^        def setColumnCount(self, columns, pid_column, active_column = 0):$/;"	m	class:MyApp.SensorList
+setColumnCount	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^        def setColumnCount(self, columns):$/;"	m	class:MyApp.MyListCtrl
+setColumnCount	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^        def setColumnCount(self, columns, pid_column, active_column = 0):$/;"	m	class:MyApp.SensorList
 setColumnCount	pyobd_beardedone55/pyobdGUI.py	/^        def setColumnCount(self, columns):$/;"	m	class:MyApp.MyListCtrl
 setColumnCount	pyobd_beardedone55/pyobdGUI.py	/^        def setColumnCount(self, columns, pid_column, active_column = 0):$/;"	m	class:MyApp.SensorList
+setIconForTest	build/lib/pyobd_beardedone55/pyobdGUI.py	/^        def setIconForTest(self, test, icon):$/;"	m	class:MyApp.TestList
+setIconForTest	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^        def setIconForTest(self, test, icon):$/;"	m	class:MyApp.TestList
 setIconForTest	pyobd_beardedone55/pyobdGUI.py	/^        def setIconForTest(self, test, icon):$/;"	m	class:MyApp.TestList
+setNumDTCs	build/lib/pyobd_beardedone55/pyobdGUI.py	/^        def setNumDTCs(self, numDTCs):$/;"	m	class:MyApp.TestList
+setNumDTCs	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^        def setNumDTCs(self, numDTCs):$/;"	m	class:MyApp.TestList
 setNumDTCs	pyobd_beardedone55/pyobdGUI.py	/^        def setNumDTCs(self, numDTCs):$/;"	m	class:MyApp.TestList
+setSensorThread	build/lib/pyobd_beardedone55/pyobdGUI.py	/^        def setSensorThread(self,senprod):$/;"	m	class:MyApp.SensorList
+setSensorThread	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^        def setSensorThread(self,senprod):$/;"	m	class:MyApp.SensorList
 setSensorThread	pyobd_beardedone55/pyobdGUI.py	/^        def setSensorThread(self,senprod):$/;"	m	class:MyApp.SensorList
+setStatusIcon	build/lib/pyobd_beardedone55/pyobdGUI.py	/^        def setStatusIcon(self, row, icon):$/;"	m	class:MyApp.TestList
+setStatusIcon	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^        def setStatusIcon(self, row, icon):$/;"	m	class:MyApp.TestList
 setStatusIcon	pyobd_beardedone55/pyobdGUI.py	/^        def setStatusIcon(self, row, icon):$/;"	m	class:MyApp.TestList
+sortMyList	build/lib/pyobd_beardedone55/pyobdGUI.py	/^        def sortMyList(self, column):$/;"	m	class:MyApp.MyListCtrl
+sortMyList	build/lib/pyobd_beardedone55/pyobdGUI.py	/^        def sortMyList(self, column):$/;"	m	class:MyApp.SensorList
+sortMyList	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^        def sortMyList(self, column):$/;"	m	class:MyApp.MyListCtrl
+sortMyList	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^        def sortMyList(self, column):$/;"	m	class:MyApp.SensorList
 sortMyList	pyobd_beardedone55/pyobdGUI.py	/^        def sortMyList(self, column):$/;"	m	class:MyApp.MyListCtrl
 sortMyList	pyobd_beardedone55/pyobdGUI.py	/^        def sortMyList(self, column):$/;"	m	class:MyApp.SensorList
+speed	build/lib/pyobd_beardedone55/obd_sensors.py	/^def speed(code):$/;"	f
+speed	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_sensors.py	/^def speed(code):$/;"	f
 speed	pyobd_beardedone55/obd_sensors.py	/^def speed(code):$/;"	f
+stop	build/lib/pyobd_beardedone55/pyobdGUI.py	/^    def stop(self):$/;"	m	class:MyApp
+stop	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^    def stop(self):$/;"	m	class:MyApp
 stop	pyobd_beardedone55/pyobdGUI.py	/^    def stop(self):$/;"	m	class:MyApp
+tabClicked	build/lib/pyobd_beardedone55/pyobdGUI.py	/^    def tabClicked(self, tabNum):$/;"	m	class:MyApp
+tabClicked	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^    def tabClicked(self, tabNum):$/;"	m	class:MyApp
 tabClicked	pyobd_beardedone55/pyobdGUI.py	/^    def tabClicked(self, tabNum):$/;"	m	class:MyApp
+temp	build/lib/pyobd_beardedone55/obd_sensors.py	/^def temp(code):$/;"	f
+temp	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_sensors.py	/^def temp(code):$/;"	f
 temp	pyobd_beardedone55/obd_sensors.py	/^def temp(code):$/;"	f
+test	build/lib/pyobd_beardedone55/obd_sensors.py	/^def test():$/;"	f
+test	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_sensors.py	/^def test():$/;"	f
 test	pyobd_beardedone55/obd_sensors.py	/^def test():$/;"	f
+testResults	build/lib/pyobd_beardedone55/obd_sensors.py	/^    def testResults(results, keys, supported, completions):$/;"	f	function:dtc_decrypt
+testResults	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_sensors.py	/^    def testResults(results, keys, supported, completions):$/;"	f	function:dtc_decrypt
 testResults	pyobd_beardedone55/obd_sensors.py	/^    def testResults(results, keys, supported, completions):$/;"	f	function:dtc_decrypt
+throttle_pos	build/lib/pyobd_beardedone55/obd_sensors.py	/^def throttle_pos(code):$/;"	f
+throttle_pos	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_sensors.py	/^def throttle_pos(code):$/;"	f
 throttle_pos	pyobd_beardedone55/obd_sensors.py	/^def throttle_pos(code):$/;"	f
+timing_advance	build/lib/pyobd_beardedone55/obd_sensors.py	/^def timing_advance(code):$/;"	f
+timing_advance	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/obd_sensors.py	/^def timing_advance(code):$/;"	f
 timing_advance	pyobd_beardedone55/obd_sensors.py	/^def timing_advance(code):$/;"	f
+updateTestTable	build/lib/pyobd_beardedone55/pyobdGUI.py	/^    def updateTestTable(self,ecu):$/;"	m	class:MyApp
+updateTestTable	debian/python3-pyobd-beardedone55/usr/lib/python3/dist-packages/pyobd_beardedone55/pyobdGUI.py	/^    def updateTestTable(self,ecu):$/;"	m	class:MyApp
 updateTestTable	pyobd_beardedone55/pyobdGUI.py	/^    def updateTestTable(self,ecu):$/;"	m	class:MyApp
 url	setup.py	/^    url="https:\/\/github.com\/beardedone55\/pyobd",$/;"	v
-version	setup.py	/^    version="0.0.1",$/;"	v
+version	setup.py	/^    version='0.9.4',$/;"	v

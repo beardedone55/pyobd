@@ -1,2 +1,10 @@
 *.ini
 *.pyc
+/build/
+/dist/
+/pyobd_beardedone55.egg-info/
+/debian/.debhelper/
+/debian/debhelper-build-stamp
+/debian/python3-pyobd-beardedone55/
+/debian/python3-pyobd-beardedone55.substvars
+/debian/files

@@ -1,59 +1,119 @@
 <HTML>
 <HEAD>
+<style>
+div.command {
+	background-color: black;
+	color: white;
+	font-weight: bold;
+	padding: 10px;
+	display: inline-block;
+	font-family: monospace;
+}
+div.command::before {
+	content: "~/pyobd$ ";
+	color: magenta;
+}
+</style>
+<title>PyOBD Installation</title>
 </HEAD>
 
 <BODY>
 
-<h1><u>PyOBD Installation Instructions</u></h1>
+<h1>PyOBD Package Build and Installation Instructions</h1>
+<hr />
+<h2>Obtaining PyOBD Source Code</h2>
+<p>The latest version of PyOBD can be obtained from github at
+<a href="https://github.com/beardedone55/pyobd/">https://github.com/beardedone55/pyobd/</a>.
+</p>
 
-<h1>Prerequisites</h1>
+<h2>PyOBD Package Build</h2>
+<p>PyOBD can be packaged into a <a href="https://packaging.python.org/glossary/#term-wheel">Python Wheel</a>
+or a <a href="https://wiki.debian.org/Packaging">Debian Package</a> to simplify
+software distribution and installation.</p>
 
-Install the following Python packages, and make sure they work.  Links
-are current at the time of this writing (February 19, 2019).
+<h3>Building PyOBD Python Wheel</h3>
+<p>A Python Wheel is an installation package that can be installed on
+any system with Python and <a href="https://pypi.org/project/pip/">pip</a>.</p>
 
-<h2>Python 3.x</h2>
+<h4>Prerequisites</h4>
+<a href=https://python.org/downloads>Python 3.x</a> and
+<a href="https://pypi.org/project/setuptools/">setuptools</a> are required to build Python
+Wheel for PyOBD.
 
-<p>Original development for PyOBD used Python 2.3.x; however, a
-conversion to Python 3.x was done on this fork, and it is no
-longer compatible with Python 2.x.  Current development work is
-using Python 3.6.7, although other versions of Python 3.x <i>may</i>
-work just fine.</p>
+<h4>Python Wheel Build Instructions</h4>
+<p>Enter the following command to generate a Python Wheel for PyOBD:</p>
+<div class="command">python3 setup.py bdist_wheel</div>
+<p>Or if you have <a href="https://https://www.gnu.org/software/make/">GNU make</a> installed:
+<div class="command">make wheel</div>
+<p>The resulting <b>.whl</b> file can be found in the <b>dist/</b> subdirectory.
 
-<p>Installation instructions are available at the python
-website: <a href="http://www.python.org">www.python.org</a></p>
+<h3>Building PyOBD Debian Package</h3>
+<p>A Debian package is an installation package that can be installed on
+Debian Linux or any derivative, such as Ubuntu.</p>
+<h4>Prerequisites</h4>
+<a href=https://python.org/downloads>Python 3.x</a>,
+<a href="https://pypi.org/project/setuptools/">setuptools</a>,
+<a href="https://https://www.gnu.org/software/make/">GNU make</a>, and
+<a href="https://packages.debian.org/sid/debhelper">debhelper</a> are
+required to build a Debian package for PyOBD.
 
-<h2>PySerial</h2>
+<h4>Debian Package Build Instructions</h4>
+<p>Enter the following command to generate a Debian package for PyOBD:</p>
+<div class="command">make deb</div>
+<p>The resulting <b>.deb</b> file can be found one level up from the pyobd
+directory (<b>../</b>).
 
-<p>This is needed to communicate with the ELM32x device via the Serial Port. It is available
-from pypi.org: <a href="https://pypi.org/project/pyserial/">https://pypi.org/project/pyserial/</a>.
-Download and install it. The latest development work for PyOBD was done with PySerial
-version 3.4.</p>
+<hr />
+<h2>Installing PyOBD</h2>
+<p>PyOBD can be installed from a Python Wheel, Debian package, or directly
+from source.  Generation of a Python Wheel or Debian package from source
+is discussed above.</p>
 
-<p>If you have <a href="https://pip.pypa.io/">pip</a> for Python 3.x, you can use
-<a href="https://pip.pypa.io/">pip</a> to install the latest version of PySerial.</p>
+<h3>Installing PyOBD from Python Wheel</h3>
+<p>The Python Wheel is a platform independent package type that can be
+installed on any system that has Python and PIP.</p>
+<h4>Prerequisites</h4>
+<a href=https://python.org/downloads>Python 3.x</a> and
+<a href="https://pypi.org/project/pip/">pip3</a> are required to install
+PyOBD from a Python Wheel.
+<h4>PyOBD Python Wheel Installation Instructions</h4>
+<p>Enter the following command to install the Python Wheel:</p>
+<div class="command">pip3 install pyobd_beardedone55-0.9.4-py3-none-any.whl</div>
+<p>This will install PyOBD along with any other required packages, such as PyQt5 and
+PySerial.</p>
 
-<h2>PyQt5</h2>
+<h3>Installing PyOBD from Debian Package</h3>
+<p>The Debian package is a package type that can be
+installed on any system that is running a Debian Linux or
+any derivative, such as Ubuntu.</p>
+<h4>Prerequisites</h4>
+<a href=https://python.org/downloads>Python 3.x</a>,
+<a href=https://pypi.org/project/PyQt5/>PyQt5</a>, and
+<a href=https://pypi.org/project/pyserial/>pyserial</a>, are
+required to install PyOBD from a Debian package.
+<h4>PyOBD Debian Package Installation Instructions</h4>
+<p>Enter the following command to install the Debian package:</p>
+<div class="command">sudo dpkg -i python3-pyobd-beardedone55_0.9.4_all.deb</div>
+<p>This will <i>not</i> install any packages that are required by PyOBD, such as
+PyQt5 and pyserial. The installation will fail if the required packages are
+not already installed.</p>
 
-<p>The graphical user interface for PyOBD was originally developed with WxPython
-but has been converted to use PyQt5 (a Python implementation of Qt5).  PyQt5 is
-available for download at <a href="https://pypi.org/project/PyQt5/">https://pypi.org/project/PyQt5/</a>.
-The latest development work for PyOBD was done with version 5.11.3.
+<h3>Installing PyOBD from Source</h3>
+<p>PyOBD may also be installed directly from the source.</p>
+<h4>Prerequisites</h4>
+<a href=https://python.org/downloads>Python 3.x</a> and
+<a href="https://pypi.org/project/setuptools/">setuptools</a> are required to install
+PyOBD from source.
+<h4>PyOBD Source Installation Instructions</h4>
+<p>To install for all users, enter the following command from the source directory:</p>
+<div class="command">sudo python3 setup.py install</div>
+<p>To install for the current user only, enter the following command from the source directory:</p>
+<div class="command">python3 setup.py install --user</div>
+<p>This will install PyOBD along with any other required packages, such as PyQt5 and
+PySerial.</p>
+<hr />
 
-<p>If you have <a href="https://pip.pypa.io/">pip</a> for Python 3.x, you can use
-<a href="https://pip.pypa.io/">pip</a> to install the latest version of PyQt5.</p>
-
-<h1>Installation</h1>
-
-<p>After those requirements, installation is a snap. Simply download the
-release tarball and uncompress it. To "install" pyOBD on the system, simply copy
-the release directory to wherever you want (i.e. /opt, /usr/local).</p>
-
-<p>Some work has been done to create a deb install package for PyOBD, but it
-is currently broken.  At some point I would like to generate deb and rpm
-install packages for PyOBD.  I'll keep a Windows installer in mind as well,
-but we'll see about that.
-
-<h1>License</h1>
+<h2>License</h2>
 <p>Copyright 2004 Donour Sizemore (<a href='mailto:donour@uchicago.edu'>donour@uchicago.edu</a>)<br>
 Copyright 2009 Secons Ltd. (<a href='http://www.obdtester.com'>www.obdtester.com</a>)<br>
 Copyright 2019 Brian LePage (<a href='https://github.com/beardedone55/'>github.com/beardedone55/</a>)</p>
@@ -66,7 +126,7 @@ Copyright 2019 Brian LePage (<a href='https://github.com/beardedone55/'>github.c
  <p>PyOBD is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU General Public License for more details.
+ GNU General Public License for more details.</p>
 
 <p>You should have received a copy of the GNU General Public License along with PyOBD;
 if not, see <a href='https://www.gnu.org/licenses/'>https://www.gnu.org/licenses/.</a></p>
