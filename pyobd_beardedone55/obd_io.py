@@ -38,6 +38,9 @@
 #   February 27, 2019
 #   March 2, 2019
 #   April 6, 2019
+#   May 11, 2019
+#   May 23, 2019
+#   May 26, 2019
 #
 # For a complete history, see https://github.com/beardedone55/pyobd
 ############################################################################
@@ -46,6 +49,7 @@ import serial
 import string
 import time
 from math import ceil
+import logging
 
 from . import obd_sensors
 
@@ -73,7 +77,7 @@ class OBDPort:
         self.State = 1 #state SERIAL is 1 connected, 0 disconnected (connection failed)
 
         self._notify_window=_notify_window
-        self._notify_window.DebugEvent.emit(1,'Opening interface (serial port)')
+        self._notify_window.logger.info('Opening interface (serial port)')
         self.port = None
         self.protocol = None
         self.prot_is_CAN = False
@@ -83,26 +87,28 @@ class OBDPort:
             self.port = serial.Serial(portnum,baud, parity = par, stopbits = sb, \
                 bytesize = databits,timeout = to)
 
-        except serial.SerialException:
+        except serial.SerialException as e:
+            self._notify_window.logger.error("Error connecting to serial port %s: %s", portnum, str(e))
             self.State = 0
             return None
 
-        self._notify_window.DebugEvent.emit(1,"Interface successfully " + self.port.portstr + " opened")
-        self._notify_window.DebugEvent.emit(1,"Connecting to ECU...")
+        self._notify_window.logger.info("Interface %s successfully opened", self.port.portstr)
+        self._notify_window.logger.info("Connecting to ECU...")
 
         def ConnectionError(count, msg = ''):
-            self._notify_window.DebugEvent.emit(2,"Connection attempt failed: " + msg)
+            self._notify_window.logger.error("Connection attempt failed: %s", msg)
             count += 1
             if count <= RECONNATTEMPTS:
                 time.sleep(5)
-                self._notify_window.DebugEvent.emit(2,"Reconnection attempt:" + str(count))
+                self._notify_window.logger.info("Reconnection attempt: %d", count)
             return count
 
         count=0
         while count <= RECONNATTEMPTS: #until error is returned try to connect
             try:
                 self.send_command("atz")   # initialize
-            except serial.SerialException:
+            except serial.SerialException as e:
+                self._notify_window.logger.error("Error connecting to serial port: %s", str(e))
                 self.State = 0
                 return None
 
@@ -112,14 +118,14 @@ class OBDPort:
                 continue
 
             self.ELMver = res[-1]  #Last Non-Blank Line Returned is ELM Version
-            self._notify_window.DebugEvent.emit(2,"atz response: " + self.ELMver)
+            self._notify_window.logger.debug("atz response: %s", self.ELMver)
             self.send_command("ate0")  # echo off
             res = self.get_result() # ATE0 command should echo command and return OK
             if res == None:
                 count = ConnectionError(count, res[0])
                 continue
 
-            self._notify_window.DebugEvent.emit(2,"ate0 response: " + res[-1])
+            self._notify_window.logger.debug("ate0 response: %s", res[-1])
 
             self.send_command('atdp') #Send Display Protocol Command
             res = self.get_result()
@@ -157,7 +163,7 @@ class OBDPort:
             #         ----------ECU Address
 
             for ready in res:
-                self._notify_window.DebugEvent.emit(2,"0100 response1: " + ready)
+                self._notify_window.logger.debug("0100 response1: %s", ready)
                 ready = ready.split(' ')
                 if not self.prot_is_CAN:
                     ecu = ready[2]
@@ -205,9 +211,9 @@ class OBDPort:
                 cmd += '\r\n'
                 self.port.write(cmd.encode('ascii', 'ignore'))
                 self.port.flush()
-                self._notify_window.DebugEvent.emit(3,"Send command: " + cmd)
+                self._notify_window.logger.debug("Send command: %s", cmd.strip())
             except:
-                self._notify_window.DebugEvent.emit(3,"Error Sending command: " + cmd)
+                self._notify_window.logger.error("Error Sending command: %s", cmd)
 
 
     def interpret_result(self,data,ecu):
@@ -271,7 +277,7 @@ class OBDPort:
                 try:
                     c = self.port.read(1).decode('utf8', 'ignore')
                 except Exception as e:
-                    self._notify_window.DebugEvent.emit(3,"Get Result Failed: " + str(e))
+                    self._notify_window.logger.error("Get Result Failed: %s", str(e))
                     break
 
                 if len(c) == 0 or c == '>': #Loop until SOI or buffer is empty
@@ -283,14 +289,14 @@ class OBDPort:
                     buffer = ''
 
             for line in result:
-                self._notify_window.DebugEvent.emit(3,"Get result: " + line)
+                self._notify_window.logger.debug("Get result: %s", line)
 
             if len(result) == 0:
                 result = None
 
             return result
         else:
-            self._notify_window.DebugEvent.emit(3,"NO self.port!" + buffer)
+            self._notify_window.logger.error("NO self.port! %s", buffer)
         return None
 
     def get_obd_data_bytes(self):
@@ -465,7 +471,7 @@ class OBDPort:
         if self.prot_is_CAN:
             if len(res) < 20 or res[:3] != [VEHICLE_INFO_MODE_RESPONSE, VIN_PID, '01']:
                 code = ''.join(res[:3])
-                self._notify_window.DebugEvent.emit(1,'Unexpected Response to GET_VIN (%s)' % (code))
+                self._notify_window.logger.warning('Unexpected Response to GET_VIN (%s)', code)
                 return ''
 
             #Convert returned ascii byte codes to a string
@@ -475,7 +481,7 @@ class OBDPort:
             #I can't test this path.  I think it's right based on the spec....
             #I also took a shortcut, assuming mode $09 PID $01 would return '05' (it should).
             if len(res) < 35:
-                self._notify_window.DebugEvent.emit(1,'Unexpected Response Length to GET_VIN (%d)' % len(res))
+                self._notify_window.logger.warning('Unexpected Response Length to GET_VIN (%d)', len(res))
             i = 0
             retVal = ''
             while len(res) > 0:
@@ -484,13 +490,13 @@ class OBDPort:
                 code = res[:7]
                 if code[:3] != [VEHICLE_INFO_MODE_RESPONSE, VIN_PID, message_count]:
                     code = ''.join(code[:3])
-                    self._notify_window.DebugEvent.emit(1,'Unexpected Response to GET_VIN (%s)' % (code))
+                    self._notify_window.logger.warning('Unexpected Response to GET_VIN (%s)', code)
                     return ''
 
                 if i == 1:
                     if code[3:6] != ['00','00','00']:
                         code = ''.join(code[3:6])
-                        self._notify_window.DebugEvent.emit(1,'Unexpected Pad Bytes to GET_VIN (%s)' % (code))
+                        self._notify_window.warning('Unexpected Pad Bytes to GET_VIN (%s)', code)
                         return ''
                     #strip pad bytes
                     code = code[6:]
@@ -543,7 +549,7 @@ class OBDPort:
                     #check Mode Response byte (Should be GET_DTC_RESPONSE(0x43))
                     if (self.prot_is_CAN and i == 0) or (not self.prot_is_CAN and (i % 7) == 0):
                         if dataList[i] != GET_DTC_RESPONSE and dataList[i] != GET_PENDING_DTC_RESPONSE:
-                            self._notify_window.DebugEvent.emit(1,'Unexpected Response to GET_DTC (%s)' % (dataList[i]))
+                            self._notify_window.logger.warning('Unexpected Response to GET_DTC (%s)', dataList[i])
                             break
                         i += 1
 
@@ -552,7 +558,7 @@ class OBDPort:
                         NumCodes = hex_to_int(dataList[i])
                         i += 1
                         if dtcNumber is not None and (NumCodes != dtcNumber[ecu]):
-                            self._notify_window.DebugEvent.emit(1,'Expected Codes (%d) != Received Codes (%d)' % (dtcNumber[ecu], NumCodes))
+                            self._notify_window.logger.warning('Expected Codes (%d) != Received Codes (%d)', dtcNumber[ecu], NumCodes)
 
                     if i >= len(dataList):
                         break
@@ -580,7 +586,7 @@ class OBDPort:
             for ecu in r:
                 dtcNumber[ecu] = r[ecu][ptest[0]]
                 mil[ecu] = r[ecu][ptest[1]]
-                self._notify_window.DebugEvent.emit(1,'Number of stored DTC: %d' % dtcNumber[ecu])
+                self._notify_window.logger.info('Number of stored DTC: %d', dtcNumber[ecu])
 
             # Get Active DTCs
             self.send_command(GET_DTC_COMMAND)

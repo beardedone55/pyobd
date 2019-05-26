@@ -41,6 +41,9 @@
 #   March 2, 2019
 #   March 31, 2019
 #   April 5, 2019
+#   May 11, 2019
+#   May 23, 2019
+#   May 26, 2019
 #
 # For a complete history, see https://github.com/beardedone55/pyobd
 ############################################################################
@@ -59,6 +62,7 @@ import platform
 import time
 import configparser #safe application configuration
 import webbrowser #open browser from python
+import logging
 
 from .obd2_codes import pcodes
 from .obd2_codes import ptest
@@ -82,7 +86,6 @@ class MyApp(QApplication):
 
     StatusEvent = pyqtSignal(list)
     ResultEvent = pyqtSignal(str,int, int, str)
-    DebugEvent = pyqtSignal(int,str)
     TestEvent = pyqtSignal(list)
     DTCEvent = pyqtSignal(list)
     DTCClearEvent = pyqtSignal(int)
@@ -141,7 +144,7 @@ class MyApp(QApplication):
             self.pid_lookup = {}
             self.senprod = None
             self.ecu = ecu
-            icon_path = os.path.dirname(sys.argv[0]) + '/icons_gpl'
+            icon_path = os.path.dirname(__file__) + '/icons_gpl'
             self.checkBoxClear = QPixmap(icon_path + '/Checkbox-Empty-icon.png')
             self.checkBoxFull = QPixmap(icon_path + '/Checkbox-Full-icon.png')
             self.checkBoxes = {}
@@ -330,6 +333,20 @@ class MyApp(QApplication):
                 self.ecu = ecu
 
   #class producer end
+    class LogHandler(logging.Handler):
+        def __init__(self,logDisplay):
+            super().__init__()
+            self.logDisplay = logDisplay
+
+        def emit(self,record):
+            record = self.format(record)
+            self.logDisplay.append(record)
+
+    class LogDisplay(QTextEdit):
+        def __init__(self):
+            super().__init__()
+            self.setReadOnly(True)
+            self.setLineWrapMode(QTextEdit.NoWrap)
 
     def stop(self):
         if self.port != None: #if stop is called before any connection port is not defined (and not connected )
@@ -344,7 +361,7 @@ class MyApp(QApplication):
         if self.port.State==0: #Cant open serial port
             return None
 
-        self.DebugEvent.emit(1,"Communication initialized...")
+        self.logger.info("Communication initialized...")
 
         vinList = []
 
@@ -455,11 +472,58 @@ class MyApp(QApplication):
 
         self.nb.addTab(self.DTCpanel, "DTC")
 
-    def TraceDebug(self,level,msg):
-        if self.DEBUGLEVEL<=level:
-            self.trace.addTableRow(2, [str(level),msg])
+    def exportLog(self):
+        filename = QFileDialog.getSaveFileName(caption='Export Log to File...')
+        try:
+            fh = open(filename[0],'w')
+            logdata = self.logDisplay.toPlainText()
+            fh.write(logdata)
+        except Exception as e:
+            self.logger.error('Error exporting log file!!!')
+            self.logger.error('%s',str(e))
+
+    def write_config(self):
+        with open(self.configfilepath, 'w') as f:
+            self.config.write(f)
+
+    def build_log_page(self):
+        tracePanel = QWidget()
+        self.logDisplay = self.LogDisplay()
+        logHandlers = [self.LogHandler(self.logDisplay)]
+
+        def removeLogFile(self):
+            self.logToFile = False
+            self.logFile = ''
+            self.config.set('pyOBD','LOGTOFILE',self.logToFile)
+            self.config.set('pyOBD','LOGFILE',self.logFile)
+            self.write_config()
+
+        logging.basicConfig(level=self.logLevel, handlers = logHandlers, \
+                            format = '%(levelname)s:\t%(message)s')
+
+        self.logger = logging.getLogger('PyOBD')
+
+        if self.logToFile:
+            try:
+                logFileHandler = logging.FileHandler(self.logFile,'w')
+            except Exception as e:
+                self.logger.warning('Error opening log file: %s', str(e))
+                removeLogFile(self)
+            else:
+                self.logFileHandler = logFileHandler
+                self.logger.addHandler(self.logFileHandler)
+
+        LogExportButton  = QPushButton('Export Log')
+        LogExportButton.clicked.connect(self.exportLog)
+
+        panelLayout = QVBoxLayout()
+        panelLayout.addWidget(self.logDisplay)
+        panelLayout.addWidget(LogExportButton,alignment=Qt.AlignRight)
+        tracePanel.setLayout(panelLayout)
+        self.nb.addTab(tracePanel, "Trace")
 
     def OnInit(self):
+
         self.ThreadControl = 0 #say thread what to do
         self.COMPORT = 0
         self.BAUDRATE = 0
@@ -468,10 +532,10 @@ class MyApp(QApplication):
         self.sensorTables = {}
         self.port = None
 
-        icon_path = os.path.dirname(sys.argv[0]) + '/icons_free'
+        icon_path = os.path.dirname(__file__) + '/icons_free'
         self.completeIcon = QPixmap(icon_path + '/check-icon2.png')
         self.failedIcon = QPixmap(icon_path + '/delete-icon.png')
-        icon_path = os.path.dirname(sys.argv[0]) + '/icons_pubdomain'
+        icon_path = os.path.dirname(__file__) + '/icons_pubdomain'
         self.checkEngineIcon = QPixmap(icon_path + '/check-engine.png')
         self.checkEngineOffIcon = QPixmap(icon_path + '/check-engine-off.png')
 
@@ -492,23 +556,28 @@ class MyApp(QApplication):
             self.configfilepath="pyobd.ini"
         else:
             self.configfilepath=os.environ['HOME']+'/.pyobdrc'
-        if self.config.read(self.configfilepath)==[]:
+        if not self.config.read(self.configfilepath):
             self.COMPORT="/dev/ttyACM0"
             self.RECONNATTEMPTS=5
             self.SERTIMEOUT=5
-            self.BAUDRATE=9600
+            self.BAUDRATE='9600'
+            self.logLevel=logging.WARNING
+            self.logToFile = False
+            self.logFile = ''
         else:
-            self.COMPORT=self.config.get("pyOBD","COMPORT")
-            self.BAUDRATE=self.config.get("pyOBD","BAUDRATE")
-            self.RECONNATTEMPTS=self.config.getint("pyOBD","RECONNATTEMPTS")
-            self.SERTIMEOUT=self.config.getint("pyOBD","SERTIMEOUT")
+            self.COMPORT=self.config.get("pyOBD","COMPORT",fallback='/dev/ttyACM0')
+            self.BAUDRATE=self.config.get("pyOBD","BAUDRATE",fallback='9600')
+            self.RECONNATTEMPTS=self.config.getint("pyOBD","RECONNATTEMPTS",fallback=5)
+            self.SERTIMEOUT=self.config.getint("pyOBD","SERTIMEOUT",fallback=5)
+            self.logLevel=self.config.getint('pyOBD','LOGLEVEL',fallback=logging.WARNING)
+            self.logToFile=self.config.getboolean('pyOBD','LOGTOFILE',fallback=False)
+            self.logFile=self.config.get('pyOBD','LOGFILE',fallback='')
 
         frame = QMainWindow()
         frame.setWindowTitle('pyOBD-II')
         self.frame=frame
 
         self.ResultEvent.connect(self.OnResult)
-        self.DebugEvent.connect(self.OnDebug)
         self.DTCEvent.connect(self.OnDtc)
         self.DTCClearEvent.connect(self.OnDtcClear)
         self.StatusEvent.connect(self.OnStatus)
@@ -542,15 +611,9 @@ class MyApp(QApplication):
 
         self.build_DTC_page()
 
-        self.trace = self.MyListCtrl(sortable=False)
-        self.trace.setColumnCount(2)
-        self.trace.setHorizontalHeaderLabels(['Level','Message'])
-        self.trace.setColumnWidth(0,40)
+        self.build_log_page()
 
-        tracePanel = self.MyPanel(self.trace)
-        self.nb.addTab(tracePanel, "Trace")
-
-        self.TraceDebug(1,"Application started")
+        self.logger.debug("Application started")
 
         self.frame.statusBar()
 
@@ -559,6 +622,7 @@ class MyApp(QApplication):
         self.filemenu = self.menuBar.addMenu("&File") # Adding the "filemenu" to the MenuBar
         self.settingmenu = self.menuBar.addMenu("&OBD-II")
         self.dtcmenu = self.menuBar.addMenu("&Trouble codes")
+        self.optionsmenu = self.menuBar.addMenu("&Options")
         self.helpmenu = self.menuBar.addMenu("&Help")
 
         # Setting up the menu.
@@ -583,6 +647,9 @@ class MyApp(QApplication):
         self.dtcmenu.addAction(self.clearDTCAction)
         self.dtcmenu.addAction(self.codeLookupAction)
         #self.dtcmenu.addAction(self.testDTCAction)
+
+        self.logoptionsAction = CreateMenuItem("Logging Options","",self.setLoggingOptions)
+        self.optionsmenu.addAction(self.logoptionsAction)
 
         self.aboutAction = CreateMenuItem("About this program","",self.OnHelpAbout)
         self.visitAction = CreateMenuItem("Visit program homepage","",self.OnHelpVisit)
@@ -611,6 +678,91 @@ class MyApp(QApplication):
                 break
         else:
             self.senprod.signals.sensorTabEvent.emit('None')
+
+    def setLoggingOptions(self):
+        dialog = QDialog(self.frame)
+        dialog.setWindowTitle('Set Logging Options')
+        dialog.setMinimumWidth(500)
+        layout = QVBoxLayout()
+
+        loglevelgroup = QGroupBox('Log Level')
+        radio = {}
+        radio[logging.DEBUG] = QRadioButton('Debug')
+        radio[logging.INFO] = QRadioButton('Info')
+        radio[logging.WARNING] = QRadioButton('Warning')
+        radio[logging.ERROR] = QRadioButton('Error')
+        radio[logging.CRITICAL] = QRadioButton('Critical')
+
+        radio[self.logLevel].setChecked(True)
+        loglevel_layout = QVBoxLayout()
+
+        for loglevel in sorted(radio.keys()):
+            loglevel_layout.addWidget(radio[loglevel])
+
+        loglevelgroup.setLayout(loglevel_layout)
+        layout.addWidget(loglevelgroup)
+
+        def browseClick():
+            filename = QFileDialog.getSaveFileName(caption='Select Log File...')[0]
+            logfilename.setText(filename) 
+
+        logfilegroup = QGroupBox('Log to File')
+        logfilegroup.setCheckable(True)
+        logfilegroup.setChecked(self.logToFile)
+        logfilelayout = QHBoxLayout()
+        logfilename = QLineEdit()
+        logfilename.setText(self.logFile)
+        logfilebrowse = QPushButton('...')
+        logfilebrowse.clicked.connect(browseClick)
+        logfilelayout.addWidget(logfilename)
+        logfilelayout.addWidget(logfilebrowse,alignment=Qt.AlignRight)
+        logfilegroup.setLayout(logfilelayout)
+        layout.addWidget(logfilegroup)
+
+        okButton = QPushButton('OK')
+        cancelButton = QPushButton('Cancel')
+        buttonLayout = QHBoxLayout()
+        buttonLayout.addWidget(okButton)
+        buttonLayout.addWidget(cancelButton)
+        okButton.clicked.connect(dialog.accept)
+        cancelButton.clicked.connect(dialog.reject)
+        layout.addLayout(buttonLayout)
+
+        dialog.setLayout(layout)
+        r = dialog.exec()
+        if r == QDialog.Accepted:
+            for loglevel, radioButton in radio.items():
+                if radioButton.isChecked():
+                    self.logLevel = loglevel
+                    self.config.set('pyOBD','LOGLEVEL',self.logLevel)
+                    self.logger.setLevel(self.logLevel)
+                    break
+
+            newfilename = logfilename.text()
+
+            if logfilegroup.isChecked():
+                if not self.logToFile or self.logFile != newfilename:
+                    try:
+                        logFileHandler = logging.FileHandler(newfilename,'w')
+                    except Exception as e:
+                        self.logger.warning('Error opening log file: %s', str(e))
+                    else:
+                        if self.logToFile:
+                            self.logger.removeHandler(self.logFileHandler)
+                        self.logToFile = True
+                        self.logFile = newfilename
+                        self.logger.addHandler(logFileHandler)
+                        self.logFileHandler = logFileHandler
+                        self.config.set('pyOBD','LOGTOFILE',self.logToFile)
+                        self.config.set('pyOBD','LOGFILE',self.logFile)
+            else:
+                if self.logToFile:
+                    self.logger.debug('Removing log to file.')
+                    self.logger.removeHandler(self.logFileHandler)
+                    self.logToFile = False
+                    self.config.set('pyOBD','LOGTOFILE',self.logToFile)
+
+            self.write_config()
 
     def OnHelpVisit(self):
         webbrowser.open("http://www.obdtester.com/pyobd")
@@ -658,14 +810,11 @@ See the GNU General Public License for more details.</p>
     def OnTests(self,event):
         self.OBDTests.addTableRow(3, event)
 
-    def OnDebug(self, level, msg):
-        self.TraceDebug(level, msg)
-
     def OnDtcClear(self, event):
         if event == 0:
             self.dtc.setRowCount(0)
         else:
-            self.DebugEvent.emit(1,'Unexpected OnDtcClear -> %d' % event)
+            self.logger.warning('Unexpected OnDtcClear -> %d', event)
 
     def OnDtc(self,event):
         if len(event) == 1:
@@ -814,16 +963,21 @@ See the GNU General Public License for more details.</p>
             comportDropdown.setCurrentIndex(0)
 
         if comportDropdown.currentIndex() >= 0:
-            for rate in serial.Serial(ports[comportDropdown.currentIndex()]).BAUDRATES:
-                if rate >=9600 and rate <=115200:
-                    baudrates.append(str(rate))
+            try:
+                for rate in serial.Serial(ports[comportDropdown.currentIndex()]).BAUDRATES:
+                    if rate >=9600 and rate <=115200:
+                        baudrates.append(str(rate))
+            except serial.SerialException as e:
+                self.logger.error('Could not retrieve baud rates from serial port: %s', str(e))
 
             baudrateDropdown.addItems(baudrates)
 
             if (self.BAUDRATE != 0) and (self.BAUDRATE in baudrates):
                 baudrateDropdown.setCurrentIndex(baudrates.index(self.BAUDRATE))
-            else:
+            elif '38400' in baudrates:
                 baudrateDropdown.setCurrentIndex(baudrates.index('38400'))
+            else:
+                baudrateDropdown.setCurrentIndex(0)
 
         okButton = QPushButton('OK')
         cancelButton = QPushButton('Cancel')
@@ -869,7 +1023,7 @@ See the GNU General Public License for more details.</p>
             self.config.set("pyOBD","RECONNATTEMPTS",self.RECONNATTEMPTS)
 
             #write configuration to cfg file
-            self.config.write(open(self.configfilepath, 'w'))
+            self.write_config()
 
     def exitCleanup(self):
         self.ThreadControl=666
