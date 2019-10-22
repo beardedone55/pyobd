@@ -107,8 +107,33 @@ def fuel_trim_percent(code):
     code = hex_to_int(code[:2])
     return '%3.1f' % ((code - 128.0) * 100.0 / 128.0)
 
+def hex_to_dtc(code):
+    """Convert Hex String to DTC, e.g., '0142' => 'P0142'"""
+
+    #First character is from first two bits:
+    # 00 = P
+    # 01 = C
+    # 10 = B
+    # 11 = U
+    #Second character is hexadecimal of next 2 bits
+    #Last three characters are hexadecimal value of next 12 bits
+    # e.g., 0142 => P0142
+    # e.g., C123 => U0123
+    # e.g., 5123 => B1123
+
+    if hex_to_int(code) == 0: #Zero Value implies no DTC
+        return None
+
+    dtcLetters = ["P", "C", "B", "U"]
+    #First nibble; used to create first two characters.
+    #Next 3 characters can be returned umodified.
+    nibble1 = hex_to_int(code[:1])
+
+    return dtcLetters[(nibble1 & 0xC)>>2] + str((nibble1 & 0x3)) + code[1:4]
+
+
 def dtc_decrypt(code):
-    #first byte is byte after PID and without spaces
+    #first byte is byte after PID
     num = hex_to_int(code[:2]) #A byte
     res = {}
 
@@ -213,12 +238,19 @@ class Sensor:
         self.unit = u
         self.length = length
 
+def get_nonuser_pids():
+    nonuser_pids = SUPPORTED_PIDS
+    for i,sensor in enumerate(SENSORS):
+        if sensor.value is cpass:
+            nonuser_pids += i,
+    return nonuser_pids
+
 SUPPORTED_PIDS = (0, 0x20, 0x40, 0x60, 0x80)
 
 SENSORS = [
     Sensor("          Supported PIDs", "0100", hex_to_bitstring  ,"",4     ),
     Sensor("Status Since DTC Cleared", "0101", dtc_decrypt       ,"",4     ),
-    Sensor("DTC Causing Freeze Frame", "0102", cpass             ,"",2     ),
+    Sensor("DTC Causing Freeze Frame", "0102", hex_to_dtc        ,"",2     ),
     Sensor("      Fuel System Status", "0103", ol_cl             ,"",2     ),
     Sensor("   Calculated Load Value", "0104", percent_scale     ,"",1     ),
     Sensor("     Coolant Temperature", "0105", temp              ,"C",1    ),
@@ -350,6 +382,10 @@ SENSORS = [
     Sensor("              NOx Sensor", "0183", cpass  ,"",5),
     ]
 
+NONUSER_PIDS = SUPPORTED_PIDS
+for i,sensor in enumerate(SENSORS):
+    if sensor.value is cpass:
+        NONUSER_PIDS += i,
 
 #___________________________________________________________
 

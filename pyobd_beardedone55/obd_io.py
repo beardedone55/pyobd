@@ -56,6 +56,7 @@ from . import obd_sensors
 from .obd_sensors import hex_to_int
 from .obd2_codes import ptest
 
+GET_FREEZE_FRAME_COMMAND   = "02"
 GET_DTC_COMMAND   = "03"
 CLEAR_DTC_COMMAND = "04"
 GET_PENDING_DTC_COMMAND = "07"
@@ -349,7 +350,7 @@ class OBDPort:
         return retVal
 
     # get sensor value from command
-    def get_sensor_value(self,sensor,ecu):
+    def get_sensor_value(self,sensor,ecu,frame=None):
         """Internal use only: not a public interface"""
         data = self.get_result()
 
@@ -358,6 +359,11 @@ class OBDPort:
             if data != "NODATA":
                 if ecu is None:
                     for key in data:
+                        if frame is not None:
+                            received_frame = data[key][:2]
+                            if received_frame != frame:
+                                self._notify_window.logger.warning('Unexpected Frame number: %d', int(received_frame,16))
+                            data[key] = data[key][2:] #Remove Frame# from data
                         data[key] = sensor.value(data[key])
                 else:
                     data = sensor.value(data)
@@ -367,31 +373,36 @@ class OBDPort:
         return data
 
     # return string of sensor name and value from sensor index
-    def sensor(self , sensor_index, ecu = None, mode = None, sensors = obd_sensors.SENSORS):
+    def sensor(self , sensor_index, ecu = None, mode = None, frame=None, sensors = obd_sensors.SENSORS):
         """Returns 3-tuple of given sensors. 3-tuple consists of
          (Sensor Name (string), Sensor Value (string), Sensor Unit (string) ) """
         sensor = sensors[sensor_index]
         cmd = sensor.cmd
         if mode is not None:
-            cmd = mode + cmd[2:]
+            cmd = cmd[2:] if frame is None else frame + cmd[2:]
+            cmd = mode + cmd
 
         self.send_command(cmd)
-        r = self.get_sensor_value(sensor, ecu)
+        r = self.get_sensor_value(sensor, ecu, frame)
         return (sensor.name,r, sensor.unit)
 
-    def get_sensors(self, sensor_index_list, ecu = None, mode = '01', sensors = obd_sensors.SENSORS):
+    def get_sensors(self, sensor_index_list, ecu = None, mode = '01', frame=None, sensors = obd_sensors.SENSORS):
         """Returns dictionary of 3-tuples of given sensors. Each 3-tuple consists of
          (Sensor Name (string), Sensor Value (string), Sensor Unit (string) )
          the dictionary key for each 3-tuple is the PID as an integer"""
         retVal = {}
         sil = list(sensor_index_list)
+        self._notify_window.logger.debug('frame = %s', str(frame))
+        max_pids = 6 if frame is None else 3
         if self.prot_is_CAN and ecu is not None:
             while len(sil) > 0:
                 cmd = mode
                 cmd_dict = {}
-                for i in sil[:6]:  #Read up to 6 at a time!
+                for i in sil[:max_pids]:  #Read up to 6 at a time (3 for Freeze Frame)
                     pid = sensors[i].cmd[2:]
                     cmd_dict[pid] = i
+                    if frame is not None:
+                        cmd += frame
                     cmd += pid
                 self.send_command(cmd)
                 res = self.get_obd_data_bytes()
@@ -401,7 +412,13 @@ class OBDPort:
                         res = res[1:]
                         while len(res) > 0:
                             pid = res[0] #PID
-                            res = res[1:]
+                            if frame is not None:
+                                received_frame = res[1]
+                                if frame != received_frame:
+                                    self._notify_window.logger.warning('Unexpected Frame Number: %d', int(received_frame,16))
+                                res = res[2:]
+                            else:
+                                res = res[1:]
                             i = cmd_dict[pid]
                             sensor = sensors[i]
                             #data length is depdendent on PID
@@ -413,16 +430,16 @@ class OBDPort:
                             retVal[i] = (sensor.name, data, sensor.unit)
                             res = res[numBytes:] #goto next result
 
-                sil = sil[6:] #Remove last 6
+                sil = sil[max_pids:] #Remove last 6 (3 if freeze frame)
 
         else:
             for i in sensor_index_list:
-                retVal[i] = self.sensor(i, ecu, mode, sensors)
+                retVal[i] = self.sensor(i, ecu, mode, frame, sensors)
 
         return retVal
 
-    def get_supported(self, ecu, mode = '01', supported_pids = obd_sensors.SUPPORTED_PIDS):
-        data = self.get_sensors(supported_pids, ecu, mode)
+    def get_supported(self, ecu, mode = '01', frame = None, supported_pids = obd_sensors.SUPPORTED_PIDS):
+        data = self.get_sensors(supported_pids, ecu, mode, frame)
         retVal = ''
         for i in supported_pids:
             if i in data:
@@ -445,6 +462,30 @@ class OBDPort:
                 SENSORS[7].length = 2
         return retVal
 
+    def get_freeze_frame_dtc(self, ecu, frame = 0):
+        """Return trouble code that caused freeze frame (if any).
+        Will return None if freeze frame is not available.
+        frame can be any int from 0 to 255"""
+        if type(frame) is not int:
+            raise TypeError
+        if frame < 0 or frame > 255:
+            raise ValueError
+
+        frame = '%02X' % frame
+        #Service $02, PID $02 -> Freeze Frame DTC
+        return self.sensor(2, mode = GET_FREEZE_FRAME_COMMAND, ecu = ecu, frame = frame)[1]
+
+    def get_freeze_frame_sensors(self, ecu, frame = 0):
+        """Return all sensor values for all supported sensors
+        for a given freeze frame"""
+        supported_pids = self.get_supported(ecu = ecu, mode = GET_FREEZE_FRAME_COMMAND, frame = frame)
+        sensor_index_list = []
+        for i,supported in enumerate(supported_pids, 1):
+            if supported == '1' and i not in obd_sensors.NONUSER_PIDS:
+                sensor_index_list.append(i)
+
+        return self.get_sensors(sensor_index_list, ecu = ecu, mode = GET_FREEZE_FRAME_COMMAND, frame = frame)
+
     def get_tests(self, ecu, test_pid = 0x01):
         return self.sensor(test_pid, ecu)[1]
 
@@ -456,7 +497,7 @@ class OBDPort:
         VIN_SUPPORTED_INDEX = 1
         GET_VIN_CMD = VEHICLE_INFO_MODE + VIN_PID
 
-        supp = self.get_supported(ecu, VEHICLE_INFO_MODE, VEHICLE_INFO_SUPPORTED_PIDS)
+        supp = self.get_supported(ecu, VEHICLE_INFO_MODE, supported_pids = VEHICLE_INFO_SUPPORTED_PIDS)
         if supp[VIN_SUPPORTED_INDEX] == '0':
             return ''
 
@@ -538,7 +579,6 @@ class OBDPort:
         a 2-tuple: (DTC code (string), Code description (string) )"""
         #Separate Data received into codes for each ECU.
         def parse_get_dtc_data(res, DTCCodes, DTCType, dtcNumber=None):
-            dtcLetters = ["P", "C", "B", "U"]
             for ecu in res:
                 i=0
                 dataList = res[ecu]
@@ -563,16 +603,10 @@ class OBDPort:
                     if i >= len(dataList):
                         break
 
-                    val1 = hex_to_int(dataList[i])
-                    val2 = hex_to_int(dataList[i+1]) #get DTC codes from response (3 DTC each 2 bytes)
-                    val  = (val1<<8)+val2 #DTC val as int
-
+                    DTCStr = hex_to_dtc(''.join(datalist[i:i+2]))
                     i += 2
-
-                    if val==0: #skip fill of last packet
+                    if DTCStr is None:
                         continue
-
-                    DTCStr=dtcLetters[(val&0xC000)>>14]+str((val&0x3000)>>12)+str(val&0x0fff)
                     DTCCodes[ecu].append([DTCType, DTCStr])
 
             return DTCCodes

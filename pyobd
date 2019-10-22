@@ -30,5 +30,5 @@
 import sys
 from pyobd_beardedone55 import pyobdGUI
 
-app = pyobdGUI.MyApp(sys.argv)
+app = pyobdGUI.ObdGui(sys.argv)
 sys.exit(app.exec_())

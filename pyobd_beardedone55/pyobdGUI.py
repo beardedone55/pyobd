@@ -82,7 +82,7 @@ ID_HELP_ABOUT = 508
 ID_HELP_VISIT = 509
 ID_HELP_ORDER = 510
 
-class MyApp(QApplication):
+class ObdGui(QApplication):
 
     StatusEvent = pyqtSignal(list)
     ResultEvent = pyqtSignal(str,int, int, str)
@@ -90,6 +90,7 @@ class MyApp(QApplication):
     DTCEvent = pyqtSignal(list)
     DTCClearEvent = pyqtSignal(int)
     SensorProducerReady = pyqtSignal()
+    FREEZE_FRAME_ICON = '❄️'
 
     def __init__(self, myArgs):
         super().__init__(myArgs)
@@ -97,7 +98,7 @@ class MyApp(QApplication):
 
     # A listctrl which auto-resizes the column boxes to fill
     # removed style for now
-    class MyListCtrl(QTableWidget):
+    class ListCtrl(QTableWidget):
         def __init__(self, sortable=True):
             super().__init__()
             self.horizontalHeader().setStretchLastSection(True)
@@ -125,16 +126,16 @@ class MyApp(QApplication):
         def setColumnCount(self, columns):
             super().setColumnCount(columns)
             if self.sortable:
-                self.horizontalHeader().sectionClicked.connect(self.sortMyList)
+                self.horizontalHeader().sectionClicked.connect(self.sortList)
 
-        def sortMyList(self, column):
+        def sortList(self, column):
             header = self.horizontalHeader()
             if not header.isSortIndicatorShown():
                 header.setSortIndicatorShown(True)
 
             self.sortItems(column, header.sortIndicatorOrder())
 
-    class SensorList(MyListCtrl):
+    class SensorList(ListCtrl):
 
         SENSOR_OFF = '1'
         SENSOR_ON = '0'
@@ -170,10 +171,10 @@ class MyApp(QApplication):
             #last column will be used to sort by 'Active'
             self.setColumnHidden(self.last_column, True)
 
-        def sortMyList(self, column):
+        def sortList(self, column):
             if column == self.active_column:
                 column = self.last_column
-            super().sortMyList(column)
+            super().sortList(column)
             for i in range(self.rowCount()):
                 pid = self.item(i, self.pid_column).text()
                 self.pid_lookup[pid] = i
@@ -198,7 +199,7 @@ class MyApp(QApplication):
                 self.item(row,self.last_column).setText(self.SENSOR_OFF)
                 checkbox.setPixmap(self.checkBoxClear)
 
-    class TestList(MyListCtrl):
+    class TestList(ListCtrl):
         def __init__(self):
             super().__init__()
             self.setColumnCount(2)
@@ -241,7 +242,7 @@ class MyApp(QApplication):
             self.showRow(self.row(self.dtcNumItem))
 
     #Add a Widget to a panel with a layout and return the Panel
-    class MyPanel(QWidget):
+    class Panel(QWidget):
         def __init__(self, widget=None):
             super().__init__()
             layout = QVBoxLayout()
@@ -249,13 +250,24 @@ class MyApp(QApplication):
                 layout.addWidget(widget)
             self.setLayout(layout)
 
-    class MyNumberInput(QLineEdit):
+    class NumberInput(QLineEdit):
         def __init__(self, defaultText='', width=20):
             super().__init__(defaultText)
             self.setFixedWidth(width)
             validator = QIntValidator()
             validator.setBottom(0)
             self.setValidator(validator)
+
+    class Dialog(QDialog):
+        OK = QDialogButtonBox.Ok
+        CANCEL = QDialogButtonBox.Cancel
+
+        def exec(self):
+            buttonLayout = QDialogButtonBox(self.OK | self.CANCEL)
+            buttonLayout.accepted.connect(self.accept)
+            buttonLayout.rejected.connect(self.reject)
+            self.layout().addWidget(buttonLayout)
+            return super().exec()
 
     class sensorProducer(QThread):
         class CustomSlots(QObject):
@@ -348,6 +360,30 @@ class MyApp(QApplication):
             self.setReadOnly(True)
             self.setLineWrapMode(QTextEdit.NoWrap)
 
+    class FreezeFrameButton(QPushButton):
+        def __init__(self,icon,main_window,ecu,frame=0):
+            super().__init__(icon)
+            self.ecu = ecu
+            self.frame = frame
+            self.main_window = main_window
+            self.clicked.connect(self.ff_clicked)
+
+        def ff_clicked(self):
+            ff_data = self.main_window.port.get_freeze_frame_sensors(self.ecu, self.frame)
+            sensorTable = ListCtrl()
+            sensorTable.setColumnCount(3)
+            sensorTable.setHorizontalHeaderLabels(['PID', 'Sensor', 'Value'])
+            sensorTable.setColumnWidth(0,40)
+            sensorTable.setColumnWidth(1,250)
+            for pid, values in ff_data.items():
+                sensorTable.addTableRow(3, [f'${pid:02x}', values[0], ' '.join(values[1:2])])
+            dialog = QDialog(self.main_window.frame)
+            dialog.setWindowTitle('Freeze Frame Data')
+            layout = QVBoxLayout()
+            layout.addWidget(sensorTable)
+            dialog.setLayout(layout)
+            dialog.exec()
+
     def stop(self):
         if self.port != None: #if stop is called before any connection port is not defined (and not connected )
             self.port.close()
@@ -371,7 +407,8 @@ class MyApp(QApplication):
                 supp = self.port.get_supported(ecu) #read supported mode $01
                                                     #PIDS of each ECU that responds
                 ecuName = 'ECU' + str(self.port.getEcuNum(ecu))
-                self.add_sensor_table(ecuName, ecu, supp)
+                sensorTable = self.create_sensor_table(ecu, supp)
+                self.sensorTabs.addTab(sensorTable, ecuName)
                 vin = self.port.get_vin(ecu)
                 if vin != '':
                     vinList.append(vin)
@@ -403,8 +440,8 @@ class MyApp(QApplication):
         for sensorTable in self.sensorTables.values():
             sensorTable.cellClicked.disconnect()
 
-    def add_sensor_table(self, title, ecu, supp):
-        sensorTable = self.SensorList(ecu)
+    def create_sensor_table(self, ecu, supp):
+        sensorTable = ObdGui.SensorList(ecu)
         self.sensorTables[ecu] = sensorTable
         pid_column = 2
         sensorTable.setColumnCount(5,pid_column)
@@ -424,7 +461,7 @@ class MyApp(QApplication):
                 sensorTable.addTableRow(6, ['','$' + pid_hex, str(pid_dec), s, '',''])
                 sensorTable.item(row,3).setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
 
-        self.sensorTabs.addTab(sensorTable, title)
+        return sensorTable
 
     def updateTestTable(self,ecu):
         res = self.port.get_tests(ecu)
@@ -445,7 +482,7 @@ class MyApp(QApplication):
     def build_sensor_page(self):
         self.sensorTabs = QTabWidget()
         self.sensorTabs.tabBarClicked.connect(self.sensorTabClicked)
-        sensorPage = self.MyPanel(self.sensorTabs)
+        sensorPage = ObdGui.Panel(self.sensorTabs)
         self.nb.addTab(sensorPage, "Live Data")
 
     def build_DTC_page(self):
@@ -461,21 +498,24 @@ class MyApp(QApplication):
         self.GetDTCButton.clicked.connect(self.GetDTC)
         self.ClearDTCButton.clicked.connect(self.QueryClear)
 
-        self.dtc = self.MyListCtrl()
+        self.dtc = ObdGui.ListCtrl()
 
-        self.dtc.setColumnCount(3)
-        self.dtc.setHorizontalHeaderLabels(['Code','Status','Trouble Code'])
-        self.dtc.setColumnWidth(0,100)
+        self.dtc.setColumnCount(4)
+        self.dtc.setHorizontalHeaderLabels(['','Code','Status','Trouble Code'])
+        self.dtc.setColumnWidth(0,20)
         self.dtc.setColumnWidth(1,100)
+        self.dtc.setColumnWidth(2,100)
         panelLayout.addWidget(self.dtc,1,0,1,2)
         self.DTCpanel.setLayout(panelLayout)
 
         self.nb.addTab(self.DTCpanel, "DTC")
 
     def exportLog(self):
-        filename = QFileDialog.getSaveFileName(caption='Export Log to File...')
+        filename = QFileDialog.getSaveFileName(caption='Export Log to File...')[0]
+        if filename is '':
+            return
         try:
-            fh = open(filename[0],'w')
+            fh = open(filename,'w')
             logdata = self.logDisplay.toPlainText()
             fh.write(logdata)
         except Exception as e:
@@ -587,9 +627,9 @@ class MyApp(QApplication):
 
         self.nb = QTabWidget(frame)
         self.nb.tabBarClicked.connect(self.tabClicked)
-        self.frame.setCentralWidget(self.MyPanel(self.nb))
+        self.frame.setCentralWidget(ObdGui.Panel(self.nb))
 
-        self.status = self.MyListCtrl(sortable=False)
+        self.status = ObdGui.ListCtrl(sortable=False)
         self.status.setColumnCount(2)
         self.status.setHorizontalHeaderLabels(['Description','Value'])
         self.status.setColumnWidth(0,200)
@@ -599,12 +639,12 @@ class MyApp(QApplication):
         self.status.addTableRow(2, ['COM Port', self.COMPORT])
         self.status.addTableRow(2, ['Vehicle Identification Number', '-----------------'])
 
-        statusPanel  = self.MyPanel(self.status)
+        statusPanel  = ObdGui.Panel(self.status)
         self.nb.addTab(statusPanel, "Status")
 
-        self.OBDTests = self.TestList()
+        self.OBDTests = ObdGui.TestList()
 
-        OBDTestPanel = self.MyPanel(self.OBDTests)
+        OBDTestPanel = ObdGui.Panel(self.OBDTests)
         self.nb.addTab(OBDTestPanel, "Tests")
 
         self.build_sensor_page()
@@ -642,11 +682,11 @@ class MyApp(QApplication):
         self.getDTCAction = CreateMenuItem("Get DTCs",   " Get DTC Codes", self.GetDTC)
         self.clearDTCAction = CreateMenuItem("Clear DTC",  " Clear DTC Codes", self.QueryClear)
         self.codeLookupAction = CreateMenuItem("Code Lookup"," Lookup DTC Codes", self.CodeLookup)
-        #self.testDTCAction = CreateMenuItem("Test DTC"," Test DTCs", self.onTestDTC)
+        self.testDTCAction = CreateMenuItem("Test DTC"," Test DTCs", self.onTestDTC)
         self.dtcmenu.addAction(self.getDTCAction)
         self.dtcmenu.addAction(self.clearDTCAction)
         self.dtcmenu.addAction(self.codeLookupAction)
-        #self.dtcmenu.addAction(self.testDTCAction)
+        self.dtcmenu.addAction(self.testDTCAction)
 
         self.logoptionsAction = CreateMenuItem("Logging Options","",self.setLoggingOptions)
         self.optionsmenu.addAction(self.logoptionsAction)
@@ -680,7 +720,7 @@ class MyApp(QApplication):
             self.senprod.signals.sensorTabEvent.emit('None')
 
     def setLoggingOptions(self):
-        dialog = QDialog(self.frame)
+        dialog = ObdGui.Dialog(self.frame)
         dialog.setWindowTitle('Set Logging Options')
         dialog.setMinimumWidth(500)
         layout = QVBoxLayout()
@@ -704,7 +744,8 @@ class MyApp(QApplication):
 
         def browseClick():
             filename = QFileDialog.getSaveFileName(caption='Select Log File...')[0]
-            logfilename.setText(filename) 
+            if filename is not '':
+                logfilename.setText(filename) 
 
         logfilegroup = QGroupBox('Log to File')
         logfilegroup.setCheckable(True)
@@ -719,16 +760,8 @@ class MyApp(QApplication):
         logfilegroup.setLayout(logfilelayout)
         layout.addWidget(logfilegroup)
 
-        okButton = QPushButton('OK')
-        cancelButton = QPushButton('Cancel')
-        buttonLayout = QHBoxLayout()
-        buttonLayout.addWidget(okButton)
-        buttonLayout.addWidget(cancelButton)
-        okButton.clicked.connect(dialog.accept)
-        cancelButton.clicked.connect(dialog.reject)
-        layout.addLayout(buttonLayout)
-
         dialog.setLayout(layout)
+
         r = dialog.exec()
         if r == QDialog.Accepted:
             for loglevel, radioButton in radio.items():
@@ -817,13 +850,22 @@ See the GNU General Public License for more details.</p>
             self.logger.warning('Unexpected OnDtcClear -> %d', event)
 
     def OnDtc(self,event):
+        frame = None
         if len(event) == 1:
             alignment = Qt.AlignHCenter
             bold = True
         else:
             alignment = Qt.AlignLeft
             bold = False
-        self.dtc.addTableRow(3, event, bold=bold, alignment=alignment)
+            if len(event) > 3:
+                frame = event[3]
+                ecu = event[4]
+            event = [''] + event[:3]
+        self.dtc.addTableRow(4, event, bold=bold, alignment=alignment)
+        if frame is not None:
+            lastRow = self.dtc.rowCount() - 1
+            ff_button = self.FreezeFrameButton(self.FREEZE_FRAME_ICON, self.port, ecu, frame)
+            self.dtc.setCellWidget(lastRow, 0, ff_button)
 
     def OnDisconnect(self): #disconnect connection to ECU
         self.ThreadControl=666
@@ -868,10 +910,23 @@ See the GNU General Public License for more details.</p>
 
         for ecu in DTCCodes:
             self.DTCEvent.emit(['DTCs from ECU%d' % self.port.getEcuNum(ecu)])
+            freeze_frame_list = []
             if len(DTCCodes[ecu]) == 0:
                 self.DTCEvent.emit(["No DTC codes (codes cleared)"])
+            else:
+                for i in range(0,256):
+                    freeze_frame_dtc = self.port.get_freeze_frame_dtc(ecu,i)
+                    if freeze_frame_dtc is None:
+                        break
+                    freeze_frame_list.append(freeze_frame_dtc)
+            
             for code in DTCCodes[ecu]:
-                self.DTCEvent.emit([code[1],code[0],pcodes[code[1]]])
+                event_list = [code[1],code[0],pcodes[code[1]]]
+                if code[1] in freeze_frame_list:
+                    event_list.append(freeze_frame_list.index(code[1]))
+                    event_list.append(ecu)
+                self.DTCEvent.emit(event_list)
+                    
 
         self.nb.setCurrentWidget(self.DTCpanel.parentWidget())
 
@@ -923,18 +978,15 @@ See the GNU General Public License for more details.</p>
         self.DTCClearEvent.emit(0) #clear list
         self.nb.setCurrentWidget(self.DTCpanel.parentWidget())
 
-
     def scanSerial(self):
         """Scan for available ports. Return a list of serial names"""
-        available = []
-        for portItem in serial.tools.list_ports.comports():
-            available.append(portItem.device)
-        return available
+        return [portItem.device for portItem in serial.tools.list_ports.comports()]
 
     def Configure(self):
         id = 0
-        diag = QDialog(self.frame)
+        diag = ObdGui.Dialog(self.frame)
         diag.setWindowTitle("Configure")
+        diagLayout = QVBoxLayout()
         sizer = QFormLayout()
 
         ports = self.scanSerial()
@@ -949,11 +1001,11 @@ See the GNU General Public License for more details.</p>
         sizer.addRow('Choose Baud Rate: ', baudrateDropdown)
 
         #timeOut input control
-        timeoutCtrl = self.MyNumberInput(str(self.SERTIMEOUT))
+        timeoutCtrl = ObdGui.NumberInput(str(self.SERTIMEOUT))
         sizer.addRow('Timeout:', timeoutCtrl)
 
         #reconnect attempt input control
-        reconnectCtrl = self.MyNumberInput(str(self.RECONNATTEMPTS))
+        reconnectCtrl = ObdGui.NumberInput(str(self.RECONNATTEMPTS))
         sizer.addRow('Reconnect attempts:', reconnectCtrl)
 
         #set actual serial port choice
@@ -979,15 +1031,8 @@ See the GNU General Public License for more details.</p>
             else:
                 baudrateDropdown.setCurrentIndex(0)
 
-        okButton = QPushButton('OK')
-        cancelButton = QPushButton('Cancel')
-        buttonLayout = QHBoxLayout()
-        buttonLayout.addWidget(okButton)
-        buttonLayout.addWidget(cancelButton)
-        okButton.clicked.connect(diag.accept)
-        cancelButton.clicked.connect(diag.reject)
-        sizer.addRow(buttonLayout)
-        diag.setLayout(sizer)
+        diagLayout.addLayout(sizer)
+        diag.setLayout(diagLayout)
 
         r  = diag.exec()
 
@@ -1007,7 +1052,7 @@ See the GNU General Public License for more details.</p>
             #If user enters a blank, it will remain unchanged
             try:
                 self.SERTIMEOUT = int(timeoutCtrl.text())
-            except:
+            except ValueError:
                 pass
 
             self.config.set("pyOBD","SERTIMEOUT",self.SERTIMEOUT)
