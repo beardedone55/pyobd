@@ -1,4 +1,7 @@
 include pyobd_beardedone55/icons_free/*
 include pyobd_beardedone55/icons_gpl/*
 include pyobd_beardedone55/icons_pubdomain/*
+include README.md
+include COPYING
+include pyobd
 

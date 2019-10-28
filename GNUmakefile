@@ -25,13 +25,19 @@
 #
 ###########################################################
 
-PACKAGE_NAME := pyobd_beardedone55
-WHL_VERSION := $(shell ./setup.py -V)
+PYTHON := $(shell /usr/bin/which python3)
+
+PACKAGE_NAME := $(shell $(PYTHON) setup.py --name)
+WHL_VERSION := $(shell $(PYTHON) setup.py -V)
 DEB_VERSION := $(shell head -1 debian/changelog | sed 's/^.*(\(.*\)).*$$/\1/')
 
 PYOBD_WHL := dist/$(PACKAGE_NAME)-$(WHL_VERSION)-py3-none-any.whl
 DEB_PACKAGE_NAME := python3-$(subst _,-,$(PACKAGE_NAME))
 PYOBD_DEB := ../$(DEB_PACKAGE_NAME)_$(DEB_VERSION)_all.deb
+
+RPM_RELEASE := 1
+PYOBD_RPM := dist/$(PACKAGE_NAME)-$(WHL_VERSION)-$(RPM_RELEASE).noarch.rpm
+PYOBD_SRC_RPM := dist/$(PACKAGE_NAME)-$(WHL_VERSION)-$(RPM_RELEASE).src.rpm
 
 default: build ;
 
@@ -58,12 +64,12 @@ PYOBD_DEPS += COPYING
 PYOBD_DEPS += pyobd
 
 build: $(PYOBD_DEPS)
-	python3 setup.py build -e "/usr/bin/env python3"
+	$(PYTHON) setup.py build -e "/usr/bin/env python3"
 
 wheel: $(PYOBD_WHL) ;
 
 $(PYOBD_WHL): $(PYOBD_DEPS)
-	python3 setup.py bdist_wheel
+	$(PYTHON) setup.py bdist_wheel
 
 deb: $(PYOBD_DEB) ;
 
@@ -73,8 +79,13 @@ check_version:
 $(PYOBD_DEB): $(PYOBD_DEPS) | check_version
 	debuild -us -uc --lintian-opts --profile debian
 
+rpm: $(PYOBD_RPM) ;
+
+$(PYOBD_RPM): $(PYOBOD_DEPS)
+	$(PYTHON) setup.py bdist_rpm --release=$(RPM_RELEASE) -v
+
 install:
-	python3 setup.py install --root $(DESTDIR)/ $(INSTALL_OPTS)
+	$(PYTHON) setup.py install --root $(DESTDIR)/ $(INSTALL_OPTS)
 
 uninstall:
 	pip3 uninstall $(PACKAGE_NAME)

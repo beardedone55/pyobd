@@ -15,6 +15,8 @@ The following features are currently implemented in PyOBD:
 - Display results of vehicle emissions self tests.
 - Read and clear diagnostic trouble codes from vehicle's
   emmissions control system.
+- Read stored freeze frame data associated with one or
+  more stored diagnostic trouble code.
 - Display live emissions related data, such fuel trim,
   engine RPM, vehicle speed, etc.
 

@@ -3,6 +3,6 @@
 %:
 	dh $@
 
-INSTALL_OPTS := --install-layout=deb --no-compile
+INSTALL_OPTS := --install-layout=deb
 
 export INSTALL_OPTS
